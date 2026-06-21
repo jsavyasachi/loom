@@ -19,19 +19,19 @@ Watch the talk on Loom [at Clojure/West 2014](https://www.youtube.com/watch?v=wE
 Leiningen/Boot:
 
 ```clojure
-[net.clojars.savya/loom "1.1.0"]
+[net.clojars.savya/loom "1.3.0"]
 ```
 
 deps.edn:
 
 ```clojure
-net.clojars.savya/loom {:mvn/version "1.1.0"}
+net.clojars.savya/loom {:mvn/version "1.3.0"}
 ```
 
 Or depend on the maintained fork directly as a git dependency (deps.edn):
 
 ```clojure
-io.github.jsavyasachi/loom {:git/tag "1.1.0" :git/sha "036100f03335d252f6a44ef812c396b0a3e303d6"}
+io.github.jsavyasachi/loom {:git/tag "1.3.0" :git/sha "c666221b9c3ad9e600a48fe4853d9cfbf17c87e5"}
 ```
 
 ### Namespaces
@@ -46,7 +46,7 @@ io.github.jsavyasachi/loom {:git/tag "1.1.0" :git/sha "036100f03335d252f6a44ef81
 
 ### Documentation
 
-[API Reference](https://cljdoc.org/d/aysylu/loom/CURRENT)
+[API Reference](https://cljdoc.org/d/net.clojars.savya/loom/CURRENT)
 
 [Frequently Asked Questions](http://aysy.lu/loom/faq.html)
 
