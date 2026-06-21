@@ -1,5 +1,19 @@
 # Change Log
 
+## [1.2.0](https://github.com/jsavyasachi/loom/tree/1.2.0) (2026-06-21)
+
+**New:**
+- `loom.alg/simple-paths` - all simple paths between two nodes, with an optional
+  `:max-depth`. Closes #111.
+- `loom.alg/digraph-all-cycles` - all simple cycles in a directed graph
+  (Johnson's algorithm). Closes #126.
+
+**Performance:**
+- `degeneracy-ordering` decrements neighbor degrees directly instead of building
+  an intermediate map. Closes #108.
+- `pre-traverse` pushes successors lazily, avoiding O(E) stack growth on dense
+  graphs (preorder unchanged). Closes #120.
+
 ## [1.1.0](https://github.com/jsavyasachi/loom/tree/1.1.0) (2026-06-21)
 
 First release of the maintained fork, published as `net.clojars.savya/loom`.
