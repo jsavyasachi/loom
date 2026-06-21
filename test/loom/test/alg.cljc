@@ -13,7 +13,8 @@
                               coloring? greedy-coloring prim-mst-edges
                               prim-mst-edges prim-mst astar-path astar-dist
                               degeneracy-ordering maximal-cliques simple-paths
-                              subgraph? eql? isomorphism? digraph-all-cycles]]
+                              subgraph? eql? isomorphism? digraph-all-cycles
+                              clustering-coefficient]]
             [loom.derived :refer [mapped-by]]
             clojure.walk
             #?@(:clj [[clojure.test :refer :all]]
@@ -704,3 +705,15 @@
     (is (= (digraph-all-cycles directed-graph4) '())))
   (testing "not a directed graph"
     (is (= (digraph-all-cycles g6) :loom.alg/not-a-directed-graph))))
+
+(deftest clustering-coefficient-test
+  ;; triangle: every node's neighbors are fully connected -> 1
+  (let [tri (graph [:a :b] [:b :c] [:c :a])]
+    (is (= 1 (clustering-coefficient tri :a)))
+    (is (= 1 (clustering-coefficient tri))))
+  ;; path a-b-c: b's neighbors a,c are not connected -> 0; average over a,b,c -> 0
+  (let [path (graph [:a :b] [:b :c])]
+    (is (= 0 (clustering-coefficient path :b)))
+    (is (= 0 (clustering-coefficient path))))
+  ;; fewer than two neighbors -> 0
+  (is (= 0 (clustering-coefficient (graph [:a :b]) :a))))

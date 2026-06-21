@@ -902,4 +902,26 @@ can use these functions."
       (:ans cycle-data))
     ::not-a-directed-graph))
 
+(defn clustering-coefficient
+  "The clustering coefficient (Watts & Strogatz, 1998). With a node, returns its
+  local clustering coefficient (the fraction of its neighbors' possible
+  connections that exist, 0 when it has fewer than two neighbors). With only a
+  graph, returns the average over all nodes."
+  ([g node]
+   (let [neighbours (successors g node)
+         potential-connections (/ (* (count neighbours) (dec (count neighbours))) 2)]
+     (if (> (count neighbours) 1)
+       (let [neighbour-overlaps (for [n neighbours]
+                                  (let [potential (clj.set/difference neighbours #{n})
+                                        actual (successors g n)
+                                        overlap (clj.set/intersection potential actual)]
+                                    (count overlap)))
+             sum-overlaps (reduce + 0 neighbour-overlaps)]
+         (/ sum-overlaps potential-connections 2))
+       0)))
+  ([g]
+   (let [nodeset (nodes g)
+         sum-coeffs (reduce #(+ %1 (clustering-coefficient g %2)) 0 nodeset)]
+     (/ sum-coeffs (count nodeset)))))
+
 ;; ;; Todo: MST, coloring, matching, etc etc

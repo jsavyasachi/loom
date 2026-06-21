@@ -1,7 +1,42 @@
 (ns ^{:doc "Graph-generating functions"
       :author "Justin Kramer"}
   loom.gen
-  (:require [loom.graph :refer [weighted? directed? add-nodes* add-edges*]]))
+  (:require [loom.graph :refer [weighted? directed? add-nodes* add-edges* nodes]]))
+
+(defn gen-circle
+  "Adds num-nodes nodes to graph g and connects each one to out-degree
+  nearest neighbors on a ring."
+  [g num-nodes out-degree]
+  {:pre [(> num-nodes (* out-degree 2))]}
+  (let [nodes (range num-nodes)
+        edges (for [n nodes
+                    d (range 1 (inc out-degree))]
+                [n (mod (+ n d) (count nodes))])]
+    (-> g
+        (add-nodes* nodes)
+        (add-edges* edges))))
+
+(defn- add-shortcuts
+  "Adds the random shortcut edges of Newman & Watts (1999) to graph g: each
+  node gets a shortcut to a random node with probability phi."
+  [g phi seed]
+  (let [rnd (java.util.Random. seed)
+        ns (nodes g)
+        shortcuts (for [n ns
+                        :when (> phi (.nextDouble rnd))]
+                    [n (.nextInt rnd (count ns))])]
+    (add-edges* g shortcuts)))
+
+(defn gen-newman-watts
+  "Generates a small-world graph as described in Newman & Watts (1999): a ring
+  of num-nodes nodes each joined to out-degree neighbors, plus random shortcuts
+  added with probability phi. A seed makes the result reproducible."
+  ([g num-nodes out-degree phi seed]
+   (-> g
+       (gen-circle num-nodes out-degree)
+       (add-shortcuts phi seed)))
+  ([g num-nodes out-degree phi]
+   (gen-newman-watts g num-nodes out-degree phi (System/nanoTime))))
 
 (defn gen-rand
   "Adds num-nodes nodes and approximately num-edges edges to graph g. Nodes
