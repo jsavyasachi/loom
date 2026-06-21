@@ -1,4 +1,4 @@
-(defproject net.clojars.savya/loom "1.2.0"
+(defproject net.clojars.savya/loom "1.3.0"
   :min-lein-version "2.0.0"
   :description "Graph library for Clojure and ClojureScript"
   :license {:name "Eclipse Public License"

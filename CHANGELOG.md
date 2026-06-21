@@ -1,5 +1,16 @@
 # Change Log
 
+## [1.3.0](https://github.com/jsavyasachi/loom/tree/1.3.0) (2026-06-21)
+
+**New:**
+- `loom.gen/gen-circle` and `loom.gen/gen-newman-watts` - ring and small-world
+  (Newman & Watts 1999) graph generators, seeded for reproducibility. Closes #106.
+- `loom.gen/gen-barabasi-albert` - scale-free graph generator via preferential
+  attachment (Barabasi & Albert 1999), seeded. Reworks #105 (whose attachment
+  probability was inverted).
+- `loom.alg/clustering-coefficient` - local and average clustering coefficient
+  (Watts & Strogatz 1998).
+
 ## [1.2.0](https://github.com/jsavyasachi/loom/tree/1.2.0) (2026-06-21)
 
 **New:**
