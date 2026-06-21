@@ -31,7 +31,7 @@ net.clojars.savya/loom {:mvn/version "1.1.0"}
 Or depend on the maintained fork directly as a git dependency (deps.edn):
 
 ```clojure
-io.github.jsavyasachi/loom {:git/tag "1.1.0" :git/sha "..."}
+io.github.jsavyasachi/loom {:git/tag "1.1.0" :git/sha "036100f03335d252f6a44ef812c396b0a3e303d6"}
 ```
 
 ### Namespaces
