@@ -38,6 +38,38 @@
   ([g num-nodes out-degree phi]
    (gen-newman-watts g num-nodes out-degree phi (System/nanoTime))))
 
+(defn gen-barabasi-albert
+  "Generates a scale-free graph by preferential attachment (Barabasi & Albert,
+  1999): starting from a connected core of m+1 nodes, each new node attaches to
+  m existing nodes chosen with probability proportional to their degree. A seed
+  makes the result reproducible."
+  ([g num-nodes m seed]
+   {:pre [(>= m 1) (> num-nodes m)]}
+   (let [rnd (java.util.Random. seed)
+         core-edges (for [i (range m)] [i (inc i)])
+         g0 (-> g
+                (add-nodes* (range (inc m)))
+                (add-edges* core-edges))
+         ;; "repeated node" pool: a node appears once per incident edge endpoint,
+         ;; so a uniform draw selects a node with probability proportional to its
+         ;; degree.
+         pool0 (vec (mapcat identity core-edges))]
+     (loop [g g0
+            pool pool0
+            new (inc m)]
+       (if (>= new num-nodes)
+         g
+         (let [targets (loop [ts #{}]
+                         (if (>= (count ts) m)
+                           ts
+                           (recur (conj ts (nth pool (.nextInt rnd (count pool)))))))]
+           (recur (add-edges* g (for [t targets] [new t]))
+                  (into pool (concat (repeat m new) targets))
+                  (inc new))))))
+   )
+  ([g num-nodes m]
+   (gen-barabasi-albert g num-nodes m (System/nanoTime))))
+
 (defn gen-rand
   "Adds num-nodes nodes and approximately num-edges edges to graph g. Nodes
   used for each edge are chosen at random and may be chosen more than once."

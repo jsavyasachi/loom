@@ -1,7 +1,8 @@
 (ns loom.test.gen
   (:require [clojure.test :refer (deftest testing is are)]
-            [loom.graph :refer (graph digraph weighted-graph nodes edges)]
-            [loom.gen :refer (gen-circle gen-newman-watts)]))
+            [clojure.set :as set]
+            [loom.graph :refer (graph digraph weighted-graph nodes edges out-degree)]
+            [loom.gen :refer (gen-circle gen-newman-watts gen-barabasi-albert)]))
 
 (deftest gen-circle-test
   (testing "ring structure is deterministic"
@@ -22,7 +23,22 @@
           a (gen-newman-watts (graph) 20 2 0.5 42)
           b (gen-newman-watts (graph) 20 2 0.5 42)]
       (is (= (set (range 20)) (nodes a)))
-      (is (clojure.set/subset? ring (set (edges a))))
+      (is (set/subset? ring (set (edges a))))
       (is (>= (count (edges a)) (count ring)))
       ;; same seed -> identical graph
       (is (= (set (edges a)) (set (edges b)))))))
+
+(deftest gen-barabasi-albert-test
+  (let [a (gen-barabasi-albert (graph) 50 2 7)
+        b (gen-barabasi-albert (graph) 50 2 7)]
+    (testing "node count and reproducibility"
+      (is (= (set (range 50)) (nodes a)))
+      (is (= (set (edges a)) (set (edges b)))))
+    (testing "exact edge count: m core + m per added node"
+      ;; m*(num-nodes - m) undirected edges; edges returns both directions
+      (is (= (* 2 (* 2 (- 50 2))) (count (edges a)))))
+    (testing "preferential attachment produces a hub (max degree well above m)"
+      (let [degs (map #(out-degree a %) (nodes a))]
+        (is (> (apply max degs) 2))))
+    (testing "preconditions"
+      (is (thrown? AssertionError (gen-barabasi-albert (graph) 2 5 1))))))
