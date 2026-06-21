@@ -1,8 +1,12 @@
-(defproject aysylu/loom "1.0.3-SNAPSHOT"
+(defproject net.clojars.savya/loom "1.1.0"
   :min-lein-version "2.0.0"
-  :description "Graph library for Clojure"
+  :description "Graph library for Clojure and ClojureScript"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :deploy-repositories [["releases" {:url "https://repo.clojars.org"
+                                     :username :env/clojars_username
+                                     :password :env/clojars_password
+                                     :sign-releases false}]]
   :dependencies [[org.clojure/clojure "1.12.0" :scope "provided"]
                  [org.clojure/data.priority-map "1.2.1"]
                  [tailrecursion/cljs-priority-map "1.2.1"]]
@@ -14,7 +18,7 @@
   :aliases {"all" ["with-profile" "+clojure-1-10:+clojure-1-11:+clojure-1-12"]
             "test-all" ["do" "clean," "test" ":all," "cljs-test"]
             "cljs-test" ["doo" "node" "node-test" "once"]
-            "release" ["do" "clean," "with-profile" "default" "deploy" "clojars"]}
+            "release" ["do" "clean," "with-profile" "default" "deploy" "releases"]}
 
   :profiles {:dev [:cljs
                    {:dependencies [[org.clojure/test.check "1.1.3"]]

@@ -1,5 +1,32 @@
 # Change Log
 
+## [1.1.0](https://github.com/jsavyasachi/loom/tree/1.1.0) (2026-06-21)
+
+First release of the maintained fork, published as `net.clojars.savya/loom`.
+
+**Platform:**
+- Default to Clojure 1.12; test matrix on Clojure 1.10/1.11/1.12 and JDK 8/11/17/21.
+- Bump data.priority-map to 1.2.1, test.check to 1.1.3, ClojureScript to 1.12.145.
+- Add `deps.edn` so loom is usable as a git dependency and via `clojure -X:test`.
+- GitHub Actions CI (clj matrix + a ClojureScript/node job).
+
+**Bug fixes:**
+- `transpose` returned an empty graph under ClojureScript, breaking `scc`,
+  `strongly-connected?`, and every transpose-based operation. Fixes #131.
+- `remove-nodes` / `subgraph` threw a null error on digraphs under ClojureScript.
+  Fixes #134.
+- `bf-path-bi` ran its two searches in racing threads and could return a
+  non-shortest path; it is now deterministic.
+- `bipartite-color` ignored edge direction on digraphs, giving non-deterministic
+  results for nodes with no outgoing edges. Fixes #118.
+- `maximal-cliques` on a digraph now throws instead of returning silently-wrong
+  results. Fixes #128.
+- `remove-nodes` now prunes the removed nodes' attributes. Fixes #93.
+- `weight` on an edge dispatches to `(weight* g e)`, honoring the protocol for
+  graphs whose edges are not determined by their endpoints. Fixes #141.
+- Building a graph from an empty adjacency map (`(graph {})`) no longer throws.
+  Fixes #137.
+
 ## [1.0.1](https://github.com/aysylu/loom/tree/1.0.1) (2018-02-19)
 [Full Changelog](https://github.com/aysylu/loom/compare/1.0.0...1.0.1)
 
