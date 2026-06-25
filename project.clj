@@ -22,7 +22,7 @@
 
   :profiles {:dev [:cljs
                    {:dependencies [[org.clojure/test.check "1.1.3"]]
-                    :plugins [[com.jakemccrary/lein-test-refresh "0.15.0"]]
+                    :plugins [[com.jakemccrary/lein-test-refresh "0.26.0"]]
                     :repl-options {:init (set! *print-length* 50)}}]
 
              :clojure-1-10 {:dependencies [[org.clojure/clojure "1.10.3" :scope "provided"]]}
@@ -30,8 +30,8 @@
              :clojure-1-12 {:dependencies [[org.clojure/clojure "1.12.0" :scope "provided"]]}
 
              :cljs {:dependencies [[org.clojure/clojurescript "1.12.145"]]
-                    :plugins [[lein-cljsbuild "1.1.3" :exclusions [org.clojure/clojure]]
-                              [lein-doo "0.1.7"]]
+                    :plugins [[lein-cljsbuild "1.1.8" :exclusions [org.clojure/clojure]]
+                              [lein-doo "0.1.11"]]
                     :doo {:build "node-dev"}
                     :cljsbuild {:builds
                                 {"node-dev"
