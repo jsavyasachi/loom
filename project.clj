@@ -1,8 +1,8 @@
 (defproject net.clojars.savya/loom "1.3.0"
   :min-lein-version "2.0.0"
   :description "Graph library for Clojure and ClojureScript"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :license {:name "Eclipse Public License 1.0"
+            :url "https://www.eclipse.org/legal/epl-v10.html"}
   :deploy-repositories [["releases" {:url "https://repo.clojars.org"
                                      :username :env/clojars_username
                                      :password :env/clojars_password
