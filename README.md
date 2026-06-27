@@ -1,13 +1,18 @@
 ![Loom logo](https://raw.github.com/aysylu/loom/master/doc/loom_logo.png "Loom")
 
 [![Clojars Project](https://img.shields.io/clojars/v/net.clojars.savya/loom.svg)](https://clojars.org/net.clojars.savya/loom)
-[![test](https://github.com/jsavyasachi/loom/actions/workflows/test.yml/badge.svg)](https://github.com/jsavyasachi/loom/actions/workflows/test.yml)
 [![cljdoc](https://cljdoc.org/badge/net.clojars.savya/loom)](https://cljdoc.org/d/net.clojars.savya/loom/CURRENT)
+[![test](https://github.com/jsavyasachi/loom/actions/workflows/test.yml/badge.svg)](https://github.com/jsavyasachi/loom/actions/workflows/test.yml)
 
 **Maintenance fork (2026).** The original [`aysylu/loom`](https://github.com/aysylu/loom)
 is no longer maintained. This fork modernizes it for current Clojure / ClojureScript
 and clears long-standing correctness bugs (see CHANGELOG). Published to Clojars as
 `net.clojars.savya/loom`.
+
+## Stack
+
+<a href="https://clojure.org"><img src="https://img.shields.io/badge/Clojure-5881D8?style=flat&logo=clojure&logoColor=fff" alt="Clojure" /></a>
+<a href="https://clojurescript.org"><img src="https://img.shields.io/badge/ClojureScript-5881D8?style=flat&logo=clojure&logoColor=fff" alt="ClojureScript" /></a>
 
 ## Video and Slides
 
