@@ -10,3 +10,5 @@ out
 /out
 /.cpcache
 *.js.map
+.cpcache/
+target/

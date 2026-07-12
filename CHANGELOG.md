@@ -1,5 +1,11 @@
 # Change Log
 
+## [Unreleased]
+
+### Changed
+
+- Migrate the build to deps.edn and tools.build, with Leiningen supported via lein-tools-deps.
+
 ## [1.3.0](https://github.com/jsavyasachi/loom/tree/1.3.0) (2026-06-21)
 
 **New:**

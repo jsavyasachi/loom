@@ -13,6 +13,8 @@ and clears long-standing correctness bugs (see CHANGELOG). Published to Clojars 
 
 <a href="https://clojure.org"><img src="https://img.shields.io/badge/Clojure-5881D8?style=flat&logo=clojure&logoColor=fff" alt="Clojure" /></a>
 <a href="https://clojurescript.org"><img src="https://img.shields.io/badge/ClojureScript-5881D8?style=flat&logo=clojure&logoColor=fff" alt="ClojureScript" /></a>
+<a href="https://clojure.org/guides/deps_and_cli"><img src="https://img.shields.io/badge/deps.edn-5881D8?style=flat&logo=clojure&logoColor=fff" alt="deps.edn" /></a>
+<a href="https://clojure.github.io/tools.build/"><img src="https://img.shields.io/badge/tools.build-5881D8?style=flat&logo=clojure&logoColor=fff" alt="tools.build" /></a>
 
 ## Video and Slides
 
@@ -22,16 +24,16 @@ Watch the talk on Loom [at Clojure/West 2014](https://www.youtube.com/watch?v=wE
 
 ### Install
 
-Leiningen/Boot:
-
-```clojure
-[net.clojars.savya/loom "1.3.0"]
-```
-
 deps.edn:
 
 ```clojure
 net.clojars.savya/loom {:mvn/version "1.3.0"}
+```
+
+Leiningen:
+
+```clojure
+[net.clojars.savya/loom "1.3.0"]
 ```
 
 Or depend on the maintained fork directly as a git dependency (deps.edn):
@@ -229,7 +231,9 @@ See [Loom TODO board](https://trello.com/b/VgPZkvjP/loom-todo).
 ## Testing
 
 ```bash
-lein test-all
+clojure -M:test
+clojure -T:build jar
+clojure -T:build deploy
 ```
 
 ## Contributors
