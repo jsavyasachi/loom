@@ -27,13 +27,13 @@ Watch the talk on Loom [at Clojure/West 2014](https://www.youtube.com/watch?v=wE
 deps.edn:
 
 ```clojure
-net.clojars.savya/loom {:mvn/version "1.3.0"}
+net.clojars.savya/loom {:mvn/version "1.3.1"}
 ```
 
 Leiningen:
 
 ```clojure
-[net.clojars.savya/loom "1.3.0"]
+[net.clojars.savya/loom "1.3.1"]
 ```
 
 Or depend on the maintained fork directly as a git dependency (deps.edn):
