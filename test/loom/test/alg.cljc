@@ -85,8 +85,8 @@
             :g [:f]
             :h [:g :d]}))
 
-;; Weighted directed graph with a negative-weight cycle
-;; which is reachable from sources :a, :b, :d, and :e.
+;; Weighted directed graph with a negative-weight cycle reachable from sources
+;; :a, :b, :d, and :e.
 ;; http://www.seas.gwu.edu/~simhaweb/alg/lectures/module9/module9.html
 (def g11
   (weighted-digraph [:a :b 3]
@@ -95,8 +95,8 @@
                     [:d :e 2]
                     [:e :b -8]))
 
-;; Weighted directed graph with a non-negative-weight cycle,
-;; similar to g11, but with the edge [:e :b] reweighed.
+;; Weighted directed graph with a non-negative-weight cycle. It is similar to
+;; g11, but the edge [:e :b] has a different weight.
 (def g12
   (weighted-digraph [:a :b 3]
                     [:b :c 4]
@@ -143,12 +143,12 @@
            [:e :d]
            [:d :c]))
 
-;; simple directed "triangle" graph
+;; Simple directed triangle graph.
 (def triangle (digraph [:a :b]
                        [:b :c]
                        [:c :a]))
 
-;; graphs for mst
+;; Graphs for mst.
 ;; http://en.wikipedia.org/wiki/Kruskal's_algorithm
 (def mst_wt_g1 (weighted-graph '(:a, :e , 1)
                         '(:c, :d ,2)
@@ -158,7 +158,7 @@
                         '(:e,:c,6)
                         '(:e,:d,7)))
 
-;;graph with 2 components
+;; Graph with 2 components.
 (def mst_wt_g2 (weighted-graph [:a :b 2]
                               [:a :d 1]
                               [:b :d 2]
@@ -173,7 +173,7 @@
 
 (def mst_wt_g5 (weighted-graph [:a :b 5] [:a :c 2] [:b :c 2]))
 
-;;graph from Cormen et all
+;; Graph from Cormen et al.
 (def mst_wt_g6 (weighted-graph [:a :b 4] [:a :h 8]
                                [:b :c 8] [:b :h 11]
                                [:c :d 7] [:c :f 4] [:c :i 2]
@@ -184,7 +184,7 @@
                                [:h :g 1] ))
 
 
-;;graph with 2 components and 2 isolated nodes
+;; Graph with 2 components and 2 isolated nodes.
 (def mst_wt_g7 (weighted-graph [:a :b 2]
                                [:b :d 2]
                                [:e :f 1]
@@ -249,8 +249,8 @@
        #{1 2 3 4 5 6 7 8} (set (bf-traverse g8))
        #{1 2 3 4 5 6 7 8} (set (nodes (digraph (bf-span g8))))
        #{2 3} (set (successors (digraph (bf-span g6 0)) 1))
-       ;; explicit start 0: the 1-arg form starts from the first of (nodes g),
-       ;; which is hash-ordered and so picked a nondeterministic start node.
+       ;; Start at 0. The one-argument form starts from the first node in (nodes g).
+       ;; Hash order could select a nondeterministic start node.
        false (not (some #{(bf-traverse (remove-nodes g6 5) 0)}
                         [[0 1 2 3 4] [0 1 3 2 4]]))
        #{:r} (set (bf-traverse g2 :r :when #(< %3 1)))
@@ -472,9 +472,9 @@
       #{#{2 3 4 6 7 8} #{1 5}}} (set (bipartite-sets g8))))
 
 (deftest bipartite-color-digraph-sinks-test
-  ;; A 4-cycle as a digraph with sink nodes 1 and 3 (no outgoing edges). Its
-  ;; undirected projection is bipartite, but successors-only coloring missed the
-  ;; predecessor edges and wrongly returned nil (#118).
+  ;; A 4-cycle digraph has sink nodes 1 and 3. Its undirected projection is
+  ;; bipartite. Successors-only coloring missed predecessor edges and returned
+  ;; nil (#118).
   (let [di (digraph [2 1] [2 3] [4 3] [4 1])
         coloring (bipartite-color di)]
     (is (some? coloring))
@@ -505,8 +505,8 @@
        #{#{2 4 10} #{1 3 5 6} #{11} #{7 8 9}} (set (map set (scc g13)))))
 
 (deftest prim-mst-edges-weighted-test
-  ; edges are described in different orders depending on platform, probably due
-  ; to priority map impl differences -- thus testing edges as sets
+  ; The platform can give edges in different orders because priority-map
+  ; implementations differ. Test edges as sets.
   (letfn [(edge-set [edge]
             (into [(set (take 2 edge))] (drop 2 edge)))
           (edge-sets [edges] (set (map edge-set edges)))]
@@ -538,13 +538,13 @@
          [(nodes mst) (set (edges mst))])))
 
 
-;;;;graphs for A* path
+;;;; Graphs for A* path.
 (def astar-simple-path-g1 (graph [:a :b]
                             [:b :c]
                             [:c :d]
                             [:d :e]))
 
-;;graph, with unreachable node
+;; Graph with an unreachable node.
 (def astar-with-unreachable-target-g2 (graph [:a :b]
                                               [:b :c]
                                               [:d :e]))
@@ -570,7 +570,7 @@
        (astar-path astar-with-cycle-g3 :a :d (fn [x y] 0))
        {:a nil :b :a :c :b :d :c}
        (astar-path astar-weighted-graph-g4 :a :d (fn [x y] 0))
-       ;;all test graphs used for Dijkstra should work for A* as well
+       ;; All test graphs for Dijkstra should also work for A*.
        {:a nil, :c :a, :h :c, :j :h} (astar-path g4 :a :j nil)
        {:r nil, :o :r, :p :o} (astar-path g2 :r :p nil))
   (is (thrown? #?(:clj Exception :cljs js/Error)
@@ -638,8 +638,8 @@
        (set (maximal-cliques maximal-cliques-g2))))
 
 (deftest maximal-cliques-digraph-throws
-  ;; Bron-Kerbosch is undirected-only; a digraph used to return silently-wrong
-  ;; results (#128). It must throw instead.
+  ;; Bron-Kerbosch only works with undirected graphs. A digraph returned incorrect
+  ;; results without an error (#128). It must throw instead.
   (is (thrown? #?(:clj clojure.lang.ExceptionInfo :cljs cljs.core/ExceptionInfo)
                (maximal-cliques (digraph [:a :b] [:b :c])))))
 

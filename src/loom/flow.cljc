@@ -5,10 +5,9 @@
 
 
 (defn residual-capacity
-  "Computes the residual capacity between nodes v1 and v2. Capacity
-   is a function that takes two nodes, and returns the capacity on the
-   edge between them, if any. Flow is the adjacency map which
-   represents the current flow in the network."
+  "Computes the residual capacity between nodes v1 and v2. Capacity is a
+   function that takes two nodes and returns the capacity on their edge. Flow is
+   the adjacency map that represents the current network flow."
   [capacity flow v1 v2]
   (+
    (or (get-in flow [v2 v1]) 0)
@@ -26,10 +25,9 @@
       (merge-with + out in))))
 
 (defn satisfies-mass-balance?
-  "Given a flow, verifies whether at each node the sum of in edge
-   weights is equal to the sum of out edge weights, except at the
-   source and sink. The source should have positive net outflow, the
-   sink negative, and together they should balance."
+  "Checks the sum of incoming and outgoing edge weights at each node, except the
+   source and sink. The source has positive net outflow. The sink has negative
+   net outflow. Together, they balance."
   [flow source sink]
   (let [balance (flow-balance flow)]
     (and (<= (or (get balance source) 0) 0)
@@ -38,8 +36,7 @@
          (every? zero? (vals (dissoc balance source sink))))))
 
 (defn satisfies-capacity-constraints?
-  "Given a flow map, and a capacity function, verifies that the flow
-   on each edge is <= capacity of that edge."
+  "Checks that the flow on each edge is less than or equal to the edge capacity."
   [flow capacity]
   (every? (fn [[node flow-to-successors]]
             (every?
@@ -49,28 +46,24 @@
           (seq flow)))
 
 (defn is-admissible-flow?
-  "Verifies that a flow satisfies capacity and mass balance
-   constraints. Does verify that a flow is maximum."
+  "Checks that a flow satisfies capacity and mass-balance constraints. It does
+   not check that a flow is maximum."
   [flow capacity source sink]
   (and (satisfies-mass-balance? flow source sink)
        (satisfies-capacity-constraints? flow capacity)))
 
 (defn min-weight-along-path
-  "Given a path, represented by a sequence of nodes, and
-   weight-function, computes the minimum of the edge weights along the
-   path. If an edge on the path is missing, returns 0."
+  "Computes the minimum edge weight along a path represented by a sequence of
+   nodes. Returns 0 if an edge on the path is missing."
   [path weight-fn]
   (reduce min (map #(or (apply weight-fn %) 0)  (partition 2 1 path))))
 
 (defn bf-find-augmenting-path
-  "Finds a shortest path in the flow network along which there remains
-   residual capacity. Successors is a function which, given a vertex,
-   returns the vertices connected by outgoing edges. Predecessors,
-   similarly is a function to get vertices connected by incoming
-   edges. Capacity is a function which takes two vertices and returns
-   the capacity between them. Flow is an adjacency map which contains
-   the current value of network flow. s is the source node, t the
-   sink."
+  "Finds a shortest path with residual capacity in the flow network. Successors
+   returns vertices connected by outgoing edges. Predecessors returns vertices
+   connected by incoming edges. Capacity returns the capacity between two
+   vertices. Flow is an adjacency map with the current network flow. s is the
+   source node. t is the sink."
   [successors predecessors capacity flow s t]
   (gen/bf-path
    (fn [vertex]
@@ -79,12 +72,11 @@
    s t))
 
 (defn augment-along-path
-  "Given a flow represented as an adjacency map, returns an updated flow.
-   Capacity is a function of two vertices, path is a sequence of
-   nodes, and increase is the amount by which the flow should be
-   augmented on this path. If at any point the increase exceeds forward
-   capacity, the excess is pushed in the reverse direction. An exception
-   is thrown if the augmentation is impossible given capacity constraints."
+  "Returns an updated flow from an adjacency map. Capacity takes two vertices.
+   path is a sequence of nodes. increase is the amount to augment on this path.
+   If increase exceeds forward capacity, the excess goes in the reverse
+   direction. Throws an exception when the capacity constraints make augmentation
+   impossible."
   [flow capacity path increase]
   (let [vn0 (first path)
         vn1 (second path)

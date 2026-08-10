@@ -50,9 +50,8 @@
          g0 (-> g
                 (add-nodes* (range (inc m)))
                 (add-edges* core-edges))
-         ;; "repeated node" pool: a node appears once per incident edge endpoint,
-         ;; so a uniform draw selects a node with probability proportional to its
-         ;; degree.
+         ;; The repeated-node pool has one entry per incident edge endpoint.
+         ;; A uniform draw selects a node with probability proportional to its degree.
          pool0 (vec (mapcat identity core-edges))]
      (loop [g g0
             pool pool0
@@ -95,7 +94,7 @@
         (add-edges* edges))))
 
 (defn gen-rand-p
-  "Adds num-nodes nodes to graph g with the probably p of an edge between
+  "Adds num-nodes nodes to graph g with probability p for an edge between
   each node."
   [g num-nodes p & {:keys [min-weight max-weight loops seed]
                     :or {min-weight 1

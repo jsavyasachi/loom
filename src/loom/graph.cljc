@@ -41,14 +41,14 @@ on adjacency lists."
   (src [edge] "Returns the source node of the edge")
   (dest [edge] "Returns the dest node of the edge"))
 
-; Default implementation for vectors
+; Default implementation for vectors.
 (extend-type #?(:clj clojure.lang.IPersistentVector
                 :cljs cljs.core.PersistentVector)
   Edge
   (src [edge] (get edge 0))
   (dest [edge] (get edge 1)))
 
-; Default implementation for maps
+; Default implementation for maps.
 #?(:clj
     (extend-type clojure.lang.IPersistentMap
       Edge
@@ -132,8 +132,8 @@ on adjacency lists."
   (remove-edges* g edges))
 
 ;;;
-;;; Records for basic graphs -- one edge per vertex pair/direction,
-;;; loops allowed
+;;; Records for basic graphs: one edge per vertex pair or direction. Loops are
+;;; allowed.
 ;;;
 ;; TODO: allow custom weight fn?
 ;; TODO: preserve metadata?
@@ -172,8 +172,8 @@ on adjacency lists."
   ;; Weighted graphs store adjacencies as {node {neighbor weight}}
   {:successors* (fn [g node] (keys (get-in g [:adj node])))})
 
-;; this map of maps of protocol impls here to maintain existing public var in
-;;     the course of making loom Clojure[Script]-portable
+;; This map of protocol implementations keeps the existing public var while Loom
+;; becomes Clojure[Script]-portable.
 ;; TODO can this be eliminated?
 #?(:clj (def default-graph-impls
           {:all default-all
@@ -288,12 +288,10 @@ on adjacency lists."
   Digraph
   (merge default-digraph-impl
          {:transpose (fn [g]
-                       ;; Rebuild from reversed edges rather than swapping the
-                       ;; :adj/:in fields. Under ClojureScript, reading those
-                       ;; fields back inside this generated extend-type method
-                       ;; mis-set :adj to nil (#131); the rebuild form (also used
-                       ;; by the weighted digraph) avoids it and keeps isolated
-                       ;; nodes via the retained :nodeset.
+                       ;; Rebuild from reversed edges. Do not swap the :adj/:in
+                       ;; fields. In ClojureScript, this generated extend-type
+                       ;; method set :adj to nil when it read the fields (#131).
+                       ;; The rebuild form also keeps isolated nodes in :nodeset.
                        (reduce (fn [tg [n1 n2]]
                                  (add-edges* tg [[n2 n1]]))
                                (assoc g :adj {} :in {})
@@ -398,10 +396,10 @@ on adjacency lists."
   default-weighted-graph-impl)
 
 ;;;
-;;; FlyGraph -- a read-only, ad-hoc graph which uses provided functions to
-;;; return values for nodes, edges, etc. Members which are not functions get
-;;; returned as-is. Edges can be inferred if nodes and successors are provided.
-;;; Nodes and edges can be inferred if successors and start are provided.
+;;; FlyGraph: a read-only graph that uses provided functions to return values for
+;;; nodes and edges. Members that are not functions are returned as-is. Edges can
+;;; be inferred when nodes and successors are provided. Nodes and edges can be
+;;; inferred when successors and start are provided.
 ;;;
 
 (defn- call-or-return [f & args]
@@ -425,7 +423,7 @@ on adjacency lists."
                  (count (successors g node)))
    :out-edges (get-in default-all [:out-edges])
    :has-node? (fn [g node]
-                ;; cannot use contains? here because (nodes g) need not be a set.
+                ;; Do not use contains? here because (nodes g) need not be a set.
                 (some #{node} (nodes g)))
    :has-edge? (fn [g n1 n2]
                 (some #{[n1 n2]} (edges g)))})
@@ -466,11 +464,11 @@ on adjacency lists."
   WeightedGraph default-flygraph-weighted-impl)
 
 ;;;
-;;; Utility functions and constructors
+;;; Utility functions and constructors.
 ;;;
 
 ;; TODO: make this work with read-only graphs?
-;; Could also gain speed being impl-specific
+;; An implementation-specific version could also increase speed.
 (defn subgraph
   "Returns a graph with only the given nodes"
   [g ns]

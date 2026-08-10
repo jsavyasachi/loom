@@ -1,6 +1,5 @@
 (ns ^{:doc "Graph attribute protocol and implementations for records from
-loom.graph. Common uses for attributes include labels and styling (color,
-thickness, etc)."
+loom.graph. Attributes can provide labels and styles (color, thickness, and so on)."
       :author "Justin Kramer"}
   loom.attr
   (:require [loom.graph :refer [directed? nodes edges src dest has-node?]
@@ -134,7 +133,7 @@ thickness, etc)."
          (add-attr n1 n2 :style :bold))))
 
 (defn hilite-path
-  "Hilites nodes and edges along a path"
+  "Highlights nodes and edges along a path."
   [g path]
   (reduce
    (fn [g [n1 n2]]
@@ -143,4 +142,3 @@ thickness, etc)."
          (hilite n2)
          (hilite n1 n2)))
    g (partition 2 1 path)))
-

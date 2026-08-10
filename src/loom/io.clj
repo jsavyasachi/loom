@@ -32,10 +32,10 @@
       (str sb))))
 
 (defn dot-str
-  "Renders graph g as a DOT-format string. Calls (node-label node) and
-  (edge-label n1 n2) to determine what labels to use for nodes and edges,
-  if any. Weights become edge labels unless a label is specified.
-  Labels also include attributes when the graph satisfies AttrGraph."
+  "Renders graph g as a DOT-format string. It calls (node-label node) and
+  (edge-label n1 n2) to get labels for nodes and edges. Weights become edge
+  labels unless a label is specified. Labels include attributes when the graph
+  satisfies AttrGraph."
   [g & {:keys [graph-name node-label edge-label]
         :or {graph-name "graph"} :as opts }]
   (let [d? (directed? g)
@@ -88,7 +88,7 @@
     (str (doto sb (.append "}")))))
 
 (defn dot
-  "Writes graph g to f (string or File) in DOT format. args passed to dot-str"
+  "Writes graph g to f (a string or File) in DOT format. It passes args to dot-str."
   [g f & args]
   (spit (str (file f)) (apply dot-str g args)))
 
@@ -105,13 +105,12 @@
     nil))
 
 (defn- open
-  "Opens the given file (a string, File, or file URI) in the default
-  application for the current desktop environment. Returns nil"
+  "Opens the given file (a string, File, or file URI) in the default application
+  for the current desktop environment. Returns nil."
   [f]
   (let [f (file f)]
-    ;; There's an 'open' method in java.awt.Desktop but it hangs on Windows
-    ;; using Clojure Box and turns the process into a GUI process on Max OS X.
-    ;; Maybe it's ok for Linux?
+    ;; java.awt.Desktop has an 'open' method. It hangs on Windows with Clojure
+    ;; Box and makes the process a GUI process on Mac OS X.
     (condp = (os)
       :mac (sh "open" (str f))
       :win (sh "cmd" (str "/c start " (-> f .toURI .toURL str)))
@@ -119,10 +118,9 @@
     nil))
 
 (defn- open-data
-  "Writes the given data (string or bytes) to a temporary file with the
-  given extension (string or keyword, with or without the dot) and then open
-  it in the default application for that extension in the current desktop
-  environment. Returns nil"
+  "Writes data (a string or bytes) to a temporary file. The extension can be a
+  string or keyword, with or without a dot. Opens the file in the default
+  application for that extension. Returns nil."
   [data ext]
   (let [ext (name ext)
         ext (if (= \. (first ext)) ext (str \. ext))
@@ -136,21 +134,20 @@
     (open tmp)))
 
 (defn render-to-bytes
-  "Renders the graph g in the image format using GraphViz and returns data
-  as a byte array.
-  Requires GraphViz's 'dot' (or a specified algorithm) to be installed in
-  the shell's path. Possible algorithms include :dot, :neato, :fdp, :sfdp,
-  :twopi, and :circo. Possible formats include :png, :ps, :pdf, and :svg."
+  "Renders graph g in an image format with GraphViz. Returns data as a byte
+  array. GraphViz's 'dot' or a specified algorithm must be in the shell path.
+  Algorithms include :dot, :neato, :fdp, :sfdp, :twopi, and :circo. Formats
+  include :png, :ps, :pdf, and :svg."
   [g & {:keys [alg fmt] :or {alg "dot" fmt :png} :as opts}]
   (let [dot (apply dot-str g (apply concat opts))
         {:keys [out]} (sh (name alg) (str "-T" (name fmt)) :in dot :out-enc :bytes)]
     out))
 
 (defn view
-  "Converts graph g to a temporary image file using GraphViz and opens it
-  in the current desktop environment's default viewer for said files.
-  Requires GraphViz's 'dot' (or a specified algorithm) to be installed in
-  the shell's path. Possible algorithms include :dot, :neato, :fdp, :sfdp,
-  :twopi, and :circo. Possible formats include :png, :ps, :pdf, and :svg."
+  "Converts graph g to a temporary image file with GraphViz. Opens the file in
+  the default viewer for the current desktop environment. GraphViz's 'dot' or a
+  specified algorithm must be in the shell path. Algorithms include :dot,
+  :neato, :fdp, :sfdp, :twopi, and :circo. Formats include :png, :ps, :pdf,
+  and :svg."
   [g & {:keys [fmt] :or {fmt :png} :as opts}]
     (open-data (apply render-to-bytes g (apply concat opts)) fmt))

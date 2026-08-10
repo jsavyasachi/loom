@@ -1,38 +1,24 @@
 (ns loom.cljs
   (:refer-clojure :exclude (extend)))
 
-;; What's going on here?
-;; 
-;; Loom uses `extend` extensively to provide protocol implementations for its
-;; various graph types. ClojureScript does not offer `extend` (only
-;; `extend-type` and `extend-protocol` are available). I did not want to
-;; refactor all the graph type definitions to use `extend-type` (either to
-;; duplicate all the protocol method impls, or delegate to the shared protocol
-;; fns that could be provided to `extend` in Clojure). Further, the protocol
-;; method impl maps in `loom.graph` are public, so I didn't want to change them
-;; from the perspective of a Clojure consumer (which might base other graph
-;; impls on those "base" maps).
-;; 
-;; This namespace is my hack/solution. Protocol method impl maps are now defined
-;; using `def-protocol-impls`, which behaves just as `def` in Clojure. But in
-;; ClojureScript, `def-protocol-impls` stores the provided map. An
-;; "implementation" of `extend` for ClojureScript is also provided here, which
-;; looks up those previously-defined maps, and uses their contents as the basis
-;; for an equivalent `extend-type` form.
-;; 
-;; There are various aspects of this that are wince-inducing, including the
-;; questionable-but-working resolution of `extend` map symbols, and the ad-hoc
-;; pattern matching and "application" on the ClojureScript side of certain
-;; functions that _loom_ uses to manipulate `extend` protocol method impl maps
-;; (`get-in`, `merge`). While such things are completely fine in Clojure, if
-;; later changes to loom manipulate those maps using other functions, the code
-;; below will need to be changed to accommodate them.
-;; 
-;; For all sorts of reasons, this is _not_ a general-purpose `extend`
-;; replacement, and so ClojureScript consumers of Loom will not be able to
-;; e.g. reliably reuse base protocol method impl maps as one can in Clojure.
-;; 
-;; - Chas
+;; This namespace provides `extend` for ClojureScript.
+;;
+;; Loom uses `extend` for protocol implementations of its graph types.
+;; ClojureScript provides `extend-type` and `extend-protocol`, but not `extend`.
+;; Refactoring all graph type definitions would duplicate protocol methods or
+;; delegate to shared protocol functions. The protocol method maps in `loom.graph`
+;; are public. Clojure consumers can base graph implementations on these maps.
+;;
+;; `def-protocol-impls` acts like `def` in Clojure. In ClojureScript, it stores the
+;; provided map. This namespace provides `extend` for ClojureScript. It gets the
+;; stored maps and uses their contents for an equivalent `extend-type` form.
+;;
+;; The code resolves `extend` map symbols and uses pattern matching for functions
+;; that Loom uses to change protocol method maps (`get-in`, `merge`). If Loom uses
+;; other functions to change these maps, change the code below to support them.
+;;
+;; This is not a general-purpose `extend` replacement. ClojureScript consumers
+;; cannot reliably reuse base protocol method maps as Clojure consumers can.
 
 (def ^:private protocol-impls (atom {}))
 
@@ -83,5 +69,4 @@
                                 impl-map)))))
              []
              (partition 2 protocols+impls))))
-
 

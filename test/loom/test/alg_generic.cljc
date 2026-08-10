@@ -17,7 +17,7 @@
   (let [dag-size (count dag)
         sample-count (int (* percent dag-size))]
     (gen/bind (apply gen/tuple
-                     ;; May collide but this is fine.
+                     ;; Collisions are acceptable.
                      (repeat (* 2 sample-count) (gen/choose 0 dag-size)))
               (fn [samples]
                 (gen/tuple (gen/return dag) (gen/return samples))))))
@@ -93,9 +93,9 @@
               (anc-model-anc? anc-model a b))))
         samp-pairs)))))
 
-;; test.check's generator runtime does not survive the test build's :advanced
-;; ClojureScript compilation, so the property-based specs run under Clojure only.
-;; loom's ancestry code itself is exercised in ClojureScript by ancestry-test.
+;; test.check's generator runtime does not survive :advanced ClojureScript
+;; compilation in the test build. The property-based specs run only under Clojure.
+;; ancestry-test exercises Loom's ancestry code in ClojureScript.
 #?(:clj
    (defspec ^:test-check-fast dag-similarity-100
      100
@@ -179,14 +179,14 @@
     [[:a :b :c :e] [:a :b :d :e]]))
 
 (deftest edge-traverse
-  ; works with nodes without outgoing edges or just a loop to iself
+  ; Works with nodes that have no outgoing edges or only a loop to itself.
   (are [g start expected] (let [pre (lag/pre-edge-traverse g start)
                                 post (lag/post-edge-traverse g start)]
                             (= expected pre (seq (reverse post))))
        g1 :d nil
        
        g4 :f '([:f :f]))
-  ; covers the whole graph when it's totally connected from start
+  ; Covers the whole graph when it is fully connected from start.
   (are [g start expected] (let [pre (lag/pre-edge-traverse g start)
                                 post (lag/post-edge-traverse g start)
                                 dg (g/digraph g)
@@ -205,14 +205,14 @@
        
        g5 :a '([:a :b] [:b :d] [:d :c] [:c :a]
                [:c :d] [:d :b] [:b :a] [:a :c]))
-  ; post traversal returning seen nodes allows complete graph coverage
-  ; without duplicates when iterating on all nodes of the graph
+  ; Post traversal returns seen nodes. It covers the graph without duplicates
+  ; when it iterates on all graph nodes.
   (are [g] (let [dg (g/digraph g)
                  edges (g/edges dg)
                  loop-post-traverse
                      (loop [nodes (reverse (g/nodes dg))
-                            ; reverse makes this more interesting as graphs
-                            ; are often specified in the forward direction
+                            ; reverse makes this test more useful. Graphs are often
+                            ; specified in the forward direction.
                             seen #{}
                             acc ()]
                        (if-let [node (first nodes)]

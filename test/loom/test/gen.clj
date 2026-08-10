@@ -25,7 +25,7 @@
       (is (= (set (range 20)) (nodes a)))
       (is (set/subset? ring (set (edges a))))
       (is (>= (count (edges a)) (count ring)))
-      ;; same seed -> identical graph
+      ;; The same seed gives an identical graph.
       (is (= (set (edges a)) (set (edges b)))))))
 
 (deftest gen-barabasi-albert-test
@@ -35,7 +35,7 @@
       (is (= (set (range 50)) (nodes a)))
       (is (= (set (edges a)) (set (edges b)))))
     (testing "exact edge count: m core + m per added node"
-      ;; m*(num-nodes - m) undirected edges; edges returns both directions
+      ;; m*(num-nodes - m) undirected edges. edges returns both directions.
       (is (= (* 2 (* 2 (- 50 2))) (count (edges a)))))
     (testing "preferential attachment produces a hub (max degree well above m)"
       (let [degs (map #(out-degree a %) (nodes a))]

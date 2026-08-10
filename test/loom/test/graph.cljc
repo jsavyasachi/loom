@@ -41,8 +41,8 @@
              false (has-edge? g1 4 1)))))
 
 (deftest remove-nodes-prunes-attrs-test
-  ;; remove-nodes left attribute entries behind for the removed node and for
-  ;; edge attributes on other nodes that referenced it (#93).
+  ;; remove-nodes left attribute entries for the removed node and edge attributes
+  ;; on other nodes that referenced it (#93).
   (testing "node and outgoing-edge attrs under the removed node"
     (let [g (-> (digraph {:a [:b]})
                 (attr/add-attr :a :color :red)
@@ -57,9 +57,9 @@
       (is (empty? (attr/attrs g :b :a))))))
 
 (deftest weight-edge-arity-test
-  ;; weight on an edge must dispatch to (weight* g e), not (weight* g src dest);
-  ;; the two differ for graphs where an edge is not determined by its endpoints
-  ;; (e.g. multigraphs). #141
+  ;; weight on an edge must dispatch to (weight* g e), not (weight* g src dest).
+  ;; These differ when an edge is not determined by its endpoints, as in
+  ;; multigraphs. #141
   (let [g (reify WeightedGraph
             (weight* [_ _e] :edge-arity)
             (weight* [_ _n1 _n2] :node-arity))]
@@ -67,7 +67,7 @@
     (is (= :node-arity (weight g 1 2)))))
 
 (deftest empty-map-construction-test
-  ;; Building from an empty adjacency map used to NPE on (val (first {})) (#137).
+  ;; Building from an empty adjacency map caused an NPE on (val (first {})) (#137).
   (are [g] (and (empty? (nodes g)) (empty? (edges g)))
     (graph {})
     (digraph {})
