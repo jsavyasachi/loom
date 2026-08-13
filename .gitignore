@@ -12,3 +12,4 @@ out
 *.js.map
 .cpcache/
 target/
+release-notes.md
