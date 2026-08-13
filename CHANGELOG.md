@@ -6,7 +6,7 @@
 
 - Migrate the build to deps.edn and tools.build, with Leiningen supported via lein-tools-deps.
 
-## [1.3.0](https://github.com/jsavyasachi/loom/tree/1.3.0) (2026-06-21)
+## [1.3.0] - 2026-06-21
 
 **New:**
 - `loom.gen/gen-circle` and `loom.gen/gen-newman-watts` - ring and small-world
@@ -17,7 +17,7 @@
 - `loom.alg/clustering-coefficient` - local and average clustering coefficient
   (Watts & Strogatz 1998).
 
-## [1.2.0](https://github.com/jsavyasachi/loom/tree/1.2.0) (2026-06-21)
+## [1.2.0] - 2026-06-21
 
 **New:**
 - `loom.alg/simple-paths` - all simple paths between two nodes, with an optional
@@ -31,7 +31,7 @@
 - `pre-traverse` pushes successors lazily, avoiding O(E) stack growth on dense
   graphs (preorder unchanged). Closes #120.
 
-## [1.1.0](https://github.com/jsavyasachi/loom/tree/1.1.0) (2026-06-21)
+## [1.1.0] - 2026-06-21
 
 First release of the maintained fork, published as `net.clojars.savya/loom`.
 
@@ -58,7 +58,7 @@ First release of the maintained fork, published as `net.clojars.savya/loom`.
 - Building a graph from an empty adjacency map (`(graph {})`) no longer throws.
   Fixes #137.
 
-## [1.0.1](https://github.com/aysylu/loom/tree/1.0.1) (2018-02-19)
+## [1.0.1] - 2018-02-19
 [Full Changelog](https://github.com/aysylu/loom/compare/1.0.0...1.0.1)
 
 **Closed issues:**
@@ -73,7 +73,7 @@ First release of the maintained fork, published as `net.clojars.savya/loom`.
 - Add network simplex implementation [\#98](https://github.com/aysylu/loom/pull/98) ([drhops](https://github.com/drhops))
 - Pass positional keyword arguments correctly [\#96](https://github.com/aysylu/loom/pull/96) ([lvh](https://github.com/lvh))
 
-## [1.0.0](https://github.com/aysylu/loom/tree/1.0.0) (2017-02-16)
+## [1.0.0] - 2017-02-16
 [Full Changelog](https://github.com/aysylu/loom/compare/0.6.0...1.0.0)
 
 **Closed issues:**
@@ -91,7 +91,7 @@ First release of the maintained fork, published as `net.clojars.savya/loom`.
 - Make loom Clojure\[Script\] portable [\#91](https://github.com/aysylu/loom/pull/91) ([cemerick](https://github.com/cemerick))
 - Fix bugs in A\* implementation. [\#84](https://github.com/aysylu/loom/pull/84) ([tessellator](https://github.com/tessellator))
 
-## [0.6.0](https://github.com/aysylu/loom/tree/0.6.0) (2016-04-14)
+## [0.6.0] - 2016-04-14
 [Full Changelog](https://github.com/aysylu/loom/compare/0.5.4...0.6.0)
 
 **Closed issues:**
@@ -110,7 +110,7 @@ First release of the maintained fork, published as `net.clojars.savya/loom`.
 - Add namespace dependency graph image to README [\#69](https://github.com/aysylu/loom/pull/69) ([danielcompton](https://github.com/danielcompton))
 - Move to Clojure 1.7 and cljc [\#61](https://github.com/aysylu/loom/pull/61) ([danielcompton](https://github.com/danielcompton))
 
-## [0.5.4](https://github.com/aysylu/loom/tree/0.5.4) (2015-07-11)
+## [0.5.4] - 2015-07-11
 [Full Changelog](https://github.com/aysylu/loom/compare/0.5.0...0.5.4)
 
 **Closed issues:**
@@ -142,7 +142,7 @@ First release of the maintained fork, published as `net.clojars.savya/loom`.
 - dot-str: edge label, when available, takes precedence over weight. [\#32](https://github.com/aysylu/loom/pull/32) ([fmjrey](https://github.com/fmjrey))
 - Edge traverse [\#31](https://github.com/aysylu/loom/pull/31) ([fmjrey](https://github.com/fmjrey))
 
-## [0.5.0](https://github.com/aysylu/loom/tree/0.5.0) (2014-06-09)
+## [0.5.0] - 2014-06-09
 [Full Changelog](https://github.com/aysylu/loom/compare/0.4.2...0.5.0)
 
 **Closed issues:**
@@ -152,14 +152,14 @@ First release of the maintained fork, published as `net.clojars.savya/loom`.
 - `\(scc ...\)` dies with a StackOverflow on large directed graphs [\#5](https://github.com/aysylu/loom/issues/5)
 - Add documentation on loom.attr functions [\#4](https://github.com/aysylu/loom/issues/4)
 
-## [0.4.2](https://github.com/aysylu/loom/tree/0.4.2) (2014-01-04)
+## [0.4.2] - 2014-01-04
 [Full Changelog](https://github.com/aysylu/loom/compare/0.4.1...0.4.2)
 
 **Closed issues:**
 
 - attrs gives inconsistent results when no attributes exist [\#9](https://github.com/aysylu/loom/issues/9)
 
-## [0.4.1](https://github.com/aysylu/loom/tree/0.4.1) (2013-10-27)
+## [0.4.1] - 2013-10-27
 **Closed issues:**
 
 - \(scc ...\) doesn't compute the correct components in some cases [\#6](https://github.com/aysylu/loom/issues/6)
