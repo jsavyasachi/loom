@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.3.2] - 2026-08-17
+
+### Fixed
+
+- `add-attrs-to-all` no longer invents bogus attributes: it treated the flat
+  key/value list as a sliding window (`partition 2 1`), writing a spurious
+  entry keyed by each value. It now pairs keys with values (`partition 2`).
+
 ## [1.3.1] - 2026-07-12
 
 ### Changed
