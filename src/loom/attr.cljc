@@ -115,7 +115,7 @@ loom.graph. Attributes can provide labels and styles (color, thickness, and so o
      (-> g
          (add-attr-to-nodes k v (nodes g))
          (add-attr-to-edges k v (edges g))))
-   g (partition 2 1 kvs)))
+   g (partition 2 kvs)))
 
 
 (defn hilite
