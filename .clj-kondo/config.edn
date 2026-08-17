@@ -1,0 +1,8 @@
+{:linters
+ {;; def-protocol-impls creates these implementation maps at macro expansion,
+  ;; which clj-kondo cannot resolve statically.
+  :unresolved-symbol {:level :warning}
+
+  ;; Clojure's variadic clojure.set/union accepts the sequence here at runtime,
+  ;; but clj-kondo's static type inference flags it.
+  :type-mismatch {:level :warning}}}
