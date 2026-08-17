@@ -5,10 +5,7 @@
   (:require
    [loom.attr
     :refer [add-attr
-            add-attr-to-nodes
-            add-attr-to-edges
-            attr
-            attrs]]
+            attr]]
    [loom.graph
     :refer [nodes
             edges

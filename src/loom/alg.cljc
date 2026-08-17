@@ -3,13 +3,12 @@ Graph, Digraph, or WeightedGraph protocols (as appropriate per algorithm)
 can use these functions."
       :author "Justin Kramer"}
   loom.alg
-  (:require [loom.alg-generic :as gen]
+  (:require [loom.alg-generic :as gen :refer [trace-path preds->span]]
             [loom.flow :as flow]
             [loom.graph
              :refer [add-nodes add-edges nodes edges successors weight predecessors
                      out-degree in-degree weighted? directed? graph digraph transpose]
              :as graph]
-            [loom.alg-generic :refer [trace-path preds->span]]
             #?(:clj [clojure.data.priority-map :as pm]
                :cljs [tailrecursion.priority-map :as pm])
             [clojure.set :as clj.set]))
