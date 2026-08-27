@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.4.0] - Unreleased
+
+### Added
+
+- `loom.flow/min-cost-flow` exposes the existing network-simplex solver as a
+  graph-level operation over node demand and edge capacity/cost attributes,
+  returning `[flow-map total-cost]` consistently with `max-flow`.
+
 ## [1.3.2] - 2026-08-17
 
 ### Fixed

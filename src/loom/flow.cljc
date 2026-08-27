@@ -1,7 +1,8 @@
 (ns ^{:doc "Algorithms for solving network flow"
       :author "Robert Lachlan"}
   loom.flow
-  (:require [loom.alg-generic :as gen]))
+  (:require [loom.alg-generic :as gen]
+            [loom.network-simplex :as network-simplex]))
 
 
 (defn residual-capacity
@@ -123,3 +124,21 @@
                 path (partial residual-capacity capacity flow))))
        (let [value (reduce + (vals (get flow source)))]
          [flow value]))))
+
+(defn min-cost-flow
+  "Computes a minimum-cost flow over a Loom graph.
+
+  The graph must have node demand attributes and edge capacity and cost
+  attributes. A negative demand supplies flow and a positive demand consumes
+  flow. Returns [flow-map total-cost], matching `max-flow`'s result shape.
+  An optional map can override the attribute keys used for :capacity, :cost,
+  and :demand."
+  ([g]
+   (min-cost-flow g {}))
+  ([g attr-keys]
+   (let [[total-cost flow-map]
+         (network-simplex/solve g (merge {:capacity :capacity
+                                          :cost :cost
+                                          :demand :demand}
+                                         attr-keys))]
+     [flow-map total-cost])))
