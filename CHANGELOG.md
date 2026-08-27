@@ -11,6 +11,10 @@
   edge identities, per-edge weights, and attribute support through
   `edges-with-ids`.
 - Transient-backed bulk constructors for the four simple graph variants.
+- PageRank, degree, closeness, betweenness, eigenvector, and HITS centrality
+  and ranking algorithms.
+- Articulation points, bridges, biconnected components, k-core, eccentricity,
+  radius, and diameter graph structure algorithms.
 
 This is a backward-compatible minor release: existing simple-graph protocol
 implementations and endpoint-shaped `edges` behavior are unchanged.
