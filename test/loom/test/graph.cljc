@@ -1,14 +1,56 @@
 (ns loom.test.graph
   (:require [loom.graph :refer (graph digraph weighted-graph weighted-digraph
+                                      multigraph multidigraph graph-from-edges
+                                      digraph-from-edges weighted-graph-from-edges
+                                      weighted-digraph-from-edges edges-with-ids
+                                      out-edges-with-ids edge-key
                                       nodes edges has-node? has-edge? transpose fly-graph
                                       remove-nodes
                                       weight graph? Graph directed? Digraph weighted?
                                       WeightedGraph subgraph add-path add-cycle)]
             [loom.attr :as attr]
+            [loom.graph :as graph]
             #?@(:clj [[clojure.test :refer (deftest testing are is)]])
             [loom.test.compliance-tester :refer [graph-test digraph-test
                                                  weighted-graph-test weighted-digraph-test]])
   #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing are is)])]))
+
+(deftest multigraph-parallel-edge-test
+  (let [g (multigraph [1 2 :first 10]
+                      [1 2 :second 20])
+        es (vec (edges-with-ids g))]
+    (is (= 4 (count es)))
+    (is (= #{:first :second} (set (map edge-key es))))
+    (is (= #{[1 2] [2 1]} (set (edges g))))
+    (is (= #{:first :second}
+           (set (map edge-key (out-edges-with-ids g 1)))))
+    (is (= 10 (weight g (first (filter #(= :first (edge-key %)) es)))))
+    (is (= 20 (weight g (first (filter #(= :second (edge-key %)) es)))))
+    (let [first-edge (first (filter #(= :first (edge-key %)) es))
+          second-edge (first (filter #(= :second (edge-key %)) es))
+          g (attr/add-attr g first-edge :label :first-label)]
+      (is (= {:label :first-label} (attr/attrs g first-edge)))
+      (is (nil? (attr/attr g second-edge :label))))))
+
+(deftest multidigraph-edge-direction-test
+  (let [g (multidigraph [1 2 :a 3] [1 2 :b 4])]
+    (is (= 2 (count (out-edges-with-ids g 1))))
+    (is (= #{[1 2]} (set (graph/in-edges g 2))))
+    (is (= #{[2 1]} (set (edges (transpose g)))))
+    (is (= #{:a :b} (set (map edge-key (edges-with-ids (transpose g))))))))
+
+(deftest batch-construction-test
+  (let [es (vec (map (fn [n] [n (inc n)]) (range 2000)))
+        one-at-a-time (fn [constructor edge-seq]
+                        (reduce (fn [g e] (constructor g e)) (constructor) edge-seq))]
+    (are [batch one-at-a-time]
+         (= (set (edges batch)) (set (edges one-at-a-time)))
+      (graph-from-edges es) (one-at-a-time graph es)
+      (digraph-from-edges es) (one-at-a-time digraph es)
+      (weighted-graph-from-edges (map #(conj % 2) es))
+      (one-at-a-time weighted-graph (map #(conj % 2) es))
+      (weighted-digraph-from-edges (map #(conj % 2) es))
+      (one-at-a-time weighted-digraph (map #(conj % 2) es)))))
 
 (deftest test-default-implementations
   (graph-test (graph))

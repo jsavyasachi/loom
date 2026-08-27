@@ -1,5 +1,17 @@
 # Change Log
 
+## Unreleased
+
+### Added
+
+- Add keyed `multigraph` and `multidigraph` constructors with stable parallel
+  edge identities, per-edge weights, and attribute support through
+  `edges-with-ids`.
+- Add transient-backed bulk constructors for the four simple graph variants.
+
+This is a backward-compatible minor release: existing simple-graph protocol
+implementations and endpoint-shaped `edges` behavior are unchanged.
+
 ## [1.3.2] - 2026-08-17
 
 ### Fixed
