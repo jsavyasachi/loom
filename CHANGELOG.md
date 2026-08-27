@@ -1,5 +1,15 @@
 # Change Log
 
+## Next minor
+
+### New
+
+- Make `loom.gen` portable to ClojureScript with a cross-platform seeded PRNG;
+  seeded graph generators now produce identical results on the JVM and JS.
+- Add structured `ex-info` validation for missing algorithm nodes, negative
+  weights passed to Dijkstra/A*, and malformed maximum-flow capacities and
+  source/sink constraints.
+
 ## [1.3.2] - 2026-08-17
 
 ### Fixed

@@ -1,8 +1,10 @@
 (ns loom.test.gen
-  (:require [clojure.test :refer (deftest testing is are)]
-            [clojure.set :as set]
-            [loom.graph :refer (graph digraph weighted-graph nodes edges out-degree)]
-            [loom.gen :refer (gen-circle gen-newman-watts gen-barabasi-albert)]))
+  (:require [clojure.set :as set]
+            [loom.graph :refer (graph digraph nodes edges out-degree)]
+            [loom.gen :refer (gen-circle gen-newman-watts gen-barabasi-albert)]
+            #?@(:clj [[clojure.test :refer (deftest testing is)]]
+                :cljs [[cljs.test :as test]]))
+  #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing is)])]))
 
 (deftest gen-circle-test
   (testing "ring structure is deterministic"
@@ -15,7 +17,8 @@
       (is (= #{[0 1] [1 2] [2 3] [3 4] [4 5] [5 0] [0 2] [1 3] [2 4] [3 5] [4 0] [5 1]}
              (set (edges g3))))))
   (testing "out-degree must fit"
-    (is (thrown? AssertionError (gen-circle (graph) 4 2)))))
+    (is (thrown? #?(:clj AssertionError :cljs js/Error)
+                 (gen-circle (graph) 4 2)))))
 
 (deftest gen-newman-watts-test
   (testing "seeded result is a superset of the ring and is reproducible"
@@ -41,4 +44,5 @@
       (let [degs (map #(out-degree a %) (nodes a))]
         (is (> (apply max degs) 2))))
     (testing "preconditions"
-      (is (thrown? AssertionError (gen-barabasi-albert (graph) 2 5 1))))))
+      (is (thrown? #?(:clj AssertionError :cljs js/Error)
+                   (gen-barabasi-albert (graph) 2 5 1))))))

@@ -6,6 +6,13 @@
                 :cljs [cljs.test]))
   #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing are is)])]))
 
+(defn- exception-data [f]
+  (try
+    (f)
+    nil
+    (catch #?(:clj clojure.lang.ExceptionInfo :cljs cljs.core/ExceptionInfo) e
+      (ex-data e))))
+
 
 ;; Trivial case
 (def g0
@@ -52,3 +59,11 @@
          (and (= max-value value)
               (is-admissible-flow? flow (weight network) :s :t)))
        23 g1))
+
+(deftest flow-validation-test
+  (testing "max-flow rejects negative capacities"
+    (is (= {:type :loom.flow/negative-capacity :edge [:s :t] :capacity -1}
+           (exception-data #(max-flow (weighted-digraph [:s :t -1]) :s :t)))))
+  (testing "max-flow rejects missing source and sink nodes"
+    (is (= {:type :loom.flow/missing-node :node :missing :role :source}
+           (exception-data #(max-flow g0 :missing :t))))))

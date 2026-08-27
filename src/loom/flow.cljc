@@ -9,10 +9,16 @@
    function that takes two nodes and returns the capacity on their edge. Flow is
    the adjacency map that represents the current network flow."
   [capacity flow v1 v2]
-  (+
-   (or (get-in flow [v2 v1]) 0)
-   (- (or (capacity v1 v2) 0)
-      (or (get-in flow [v1 v2]) 0))))
+  (let [edge-capacity (capacity v1 v2)]
+    (when (and (some? edge-capacity) (neg? edge-capacity))
+      (throw (ex-info (str "Flow capacity must be non-negative: " v1 " " v2)
+                      {:type :loom.flow/negative-capacity
+                       :edge [v1 v2]
+                       :capacity edge-capacity})))
+    (+
+     (or (get-in flow [v2 v1]) 0)
+     (- (or edge-capacity 0)
+        (or (get-in flow [v1 v2]) 0)))))
 
 (defn flow-balance
   "Given a flow, returns a map of {node (sum(in weight) - sum(out weight))}"
