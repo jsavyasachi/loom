@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.4.0] - Unreleased
+
+### Added
+
+- `loom.io` readers and writers for GraphML, GEXF, edge lists, and adjacency
+  JSON, plus a DOT reader. Matching writer/reader pairs preserve directedness,
+  weights, node values, and Loom attributes.
+
 ## [1.3.2] - 2026-08-17
 
 ### Fixed
