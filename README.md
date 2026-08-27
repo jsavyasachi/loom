@@ -162,6 +162,13 @@ Other stuff:
 (dijkstra-span wg :a)
 => {:a {:b 10, :c 20}, :b {:e 15}, :e {:d 20}}
 ```
+Graph analysis functions include `pagerank`, `degree-centrality`,
+`closeness-centrality`, `betweenness-centrality`, `eigenvector-centrality`,
+`hits`, `articulation-points`, `bridges`, `biconnected-components`, `k-core`,
+`eccentricity`, `radius`, and `diameter`. `pagerank` accepts `:damping`,
+`:iterations`, and `:tol`; iterative centrality algorithms accept `:iterations`
+and `:tol`. Structural decomposition functions operate on undirected graphs.
+
 Attributes on nodes and edges:
 ```clojure
 (def attr-graph (-> g

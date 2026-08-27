@@ -921,6 +921,276 @@ can use these functions."
   ([g]
    (let [nodeset (nodes g)
          sum-coeffs (reduce #(+ %1 (clustering-coefficient g %2)) 0 nodeset)]
-     (/ sum-coeffs (count nodeset)))))
+   (/ sum-coeffs (count nodeset)))))
+
+;;;
+;;; Centrality and ranking
+;;;
+
+(defn- finite-distance-map [g source]
+  (if (weighted? g)
+    (into {} (map (fn [[n state]] [n (first (state n))])
+                  (dijkstra-traverse g source vector)))
+    (into {} (map (fn [[n _ depth]] [n depth])
+                  (bf-traverse g source :f vector)))))
+
+(defn pagerank
+  "Returns PageRank scores as a map from node to score.
+  Options are :damping (default 0.85), :iterations (default 100), and :tol
+  (default 1e-6)."
+  [g & {:keys [damping damping-factor iterations max-iterations tol tolerance]
+        :or {damping 0.85 iterations 100 tol 1e-6}}]
+  (let [damping (or damping-factor damping)
+        iterations (or max-iterations iterations)
+        tol (or tolerance tol)
+        vs (vec (nodes g))
+        n (count vs)]
+    (if (zero? n)
+      {}
+      (loop [scores (zipmap vs (repeat (/ 1.0 n)))
+             i 0]
+        (let [base (/ (- 1.0 damping) n)
+              dangling (* damping
+                          (/ (reduce + (for [v vs :when (zero? (count (successors g v)))]
+                                         (scores v))) n))
+              next-scores
+              (into {}
+                    (for [v vs]
+                      [v (+ base dangling
+                            (reduce +
+                                    (for [u vs
+                                          :let [outs (successors g u)]
+                                          :when (some #(= % v) outs)]
+                                      (* damping (scores u) (/ 1.0 (count outs))))))]))
+              delta (reduce max 0 (map #(Math/abs (- (next-scores %) (scores %))) vs))]
+          (if (or (>= i iterations) (< delta tol))
+            next-scores
+            (recur next-scores (inc i))))))))
+
+(defn degree-centrality
+  "Returns normalized degree centrality for every node."
+  [g]
+  (let [n (count (nodes g))
+        denom (max 1 (dec n))]
+    (into {} (for [v (nodes g)]
+               [v (/ (if (directed? g)
+                       (+ (in-degree g v) (out-degree g v))
+                       (out-degree g v))
+                     denom)]))))
+
+(defn closeness-centrality
+  "Returns closeness centrality for every node. Unreachable nodes are omitted
+  from the distance sum and the numerator is the number reachable."
+  [g]
+  (into {}
+        (for [v (nodes g)
+              :let [ds (dissoc (finite-distance-map g v) v)
+                    reachable (count ds)]]
+          [v (if (zero? (reduce + 0 (vals ds)))
+               0
+               (/ reachable (reduce + (vals ds))))])))
+
+(defn betweenness-centrality
+  "Returns normalized betweenness centrality using Brandes' algorithm."
+  [g]
+  (let [vs (vec (nodes g))
+        shortest-counts (fn [source]
+                          (loop [q (conj #?(:clj clojure.lang.PersistentQueue/EMPTY
+                                             :cljs cljs.core/PersistentQueue.EMPTY) source)
+                                 dist {source 0} sigma {source 1.0}]
+                            (if-let [v (peek q)]
+                              (let [q (pop q)
+                                    [q dist sigma]
+                                    (reduce (fn [[q ds ss] w]
+                                              (cond
+                                                (not (contains? ds w))
+                                                [(conj q w) (assoc ds w (inc (ds v)))
+                                                 (assoc ss w (ss v))]
+                                                (= (ds w) (inc (ds v)))
+                                                [q ds (update ss w + (ss v))]
+                                                :else [q ds ss]))
+                                            [q dist sigma] (successors g v))]
+                                (recur q dist sigma))
+                              [dist sigma])))
+        cached (into {} (map (fn [s] [s (shortest-counts s)]) vs))
+        raw (into {} (for [v vs]
+                       [v (reduce + (for [s vs :when (not= s v)
+                                          t vs :when (and (not= t v) (not= t s))
+                                          :let [[ds ss] (cached s)
+                                                [dt st] (cached v)]
+                                          :when (and (contains? ds v)
+                                                      (contains? dt t)
+                                                      (= (ds t) (+ (ds v) (dt t))))]
+                                      (/ (* (ss v) (st t))
+                                         (ss t))))]))
+        denominator (* (max 1 (dec (count vs)))
+                       (max 1 (- (count vs) 2)))
+        scale (/ 1.0 denominator)]
+    (into {} (map (fn [[v score]] [v (* scale score)]) raw))))
+
+(defn- power-iteration [initial next-fn iterations tol]
+  (loop [scores initial i 0]
+    (let [next (next-fn scores)
+          delta (reduce max 0 (map #(Math/abs (- (next %) (scores %))) (keys scores)))]
+      (if (or (>= i iterations) (< delta tol)) next (recur next (inc i))))))
+
+(defn eigenvector-centrality
+  "Returns eigenvector centrality scores. Options are :iterations and :tol."
+  [g & {:keys [iterations max-iterations tol tolerance]
+        :or {iterations 100 tol 1e-6}}]
+  (let [iterations (or max-iterations iterations)
+        tol (or tolerance tol)
+        vs (vec (nodes g))]
+    (if (empty? vs) {}
+        (let [next-fn (fn [scores]
+                        (let [raw (into {} (for [v vs]
+                                             [v (reduce + (for [u (if (directed? g)
+                                                                    (predecessors g v)
+                                                                    (successors g v))]
+                                                            (scores u))) ]))
+                              norm (Math/sqrt (reduce + (map #(* % %) (vals raw))))]
+                          (if (zero? norm) raw (into {} (map (fn [[v x]] [v (/ x norm)]) raw)))))]
+          (power-iteration (zipmap vs (repeat (/ 1.0 (Math/sqrt (count vs)))))
+                           next-fn iterations tol)))))
+
+(defn hits
+  "Returns {:hubs ... :authorities ...} for a directed graph."
+  [g & {:keys [iterations max-iterations tol tolerance]
+        :or {iterations 100 tol 1e-6}}]
+  (let [iterations (or max-iterations iterations)
+        tol (or tolerance tol)
+        vs (vec (nodes g))
+        step (fn [{:keys [hubs]}]
+               (let [a (into {} (for [v vs] [v (reduce + (map hubs (predecessors g v)))]))
+                     an (reduce + (map #(Math/abs %) (vals a)))
+                     a (if (zero? an) a (into {} (map (fn [[v x]] [v (/ x an)]) a)))
+                     h (into {} (for [v vs] [v (reduce + (map a (successors g v)))]))
+                     hn (reduce + (map #(Math/abs %) (vals h)))]
+                 {:authorities a :hubs (if (zero? hn) h
+                                          (into {} (map (fn [[v x]] [v (/ x hn)]) h)))}))]
+    (loop [scores {:hubs (zipmap vs (repeat 1.0))
+                   :authorities (zipmap vs (repeat 1.0))}
+           i 0]
+      (let [next (step scores)
+            delta (reduce max 0 (concat
+                                (map #(Math/abs (- ((:hubs next) %) ((:hubs scores) %))) vs)
+                                (map #(Math/abs (- ((:authorities next) %)
+                                                   ((:authorities scores) %))) vs)))]
+        (if (or (>= i iterations) (< delta tol)) next
+            (recur next (inc i)))))))
+
+;;;
+;;; Structural graph analysis
+;;;
+
+(defn- require-undirected [g operation]
+  (when (directed? g)
+    (throw (ex-info (str operation " is only defined for undirected graphs")
+                    {:graph g}))))
+
+(defn- tarjan-blocks [g]
+  (require-undirected g "structural analysis")
+  (let [discovery (atom {}) low (atom {}) parent (atom {}) time (atom 0)
+        stack (atom []) articulation (atom #{}) bridges (atom #{})
+        components (atom [])]
+    (letfn [(pop-component [edge]
+              (let [es (loop [es []]
+                         (let [e (peek @stack)]
+                           (swap! stack pop)
+                           (if (= e edge) (conj es e) (recur (conj es e)))))]
+                (swap! components conj (set (mapcat identity es)))))
+            (visit [u]
+              (swap! time inc)
+              (swap! discovery assoc u @time)
+              (swap! low assoc u @time)
+              (loop [children 0 nbrs (seq (successors g u))]
+                (if-let [v (first nbrs)]
+                  (if-not (contains? @discovery v)
+                    (do
+                      (swap! parent assoc v u)
+                      (swap! stack conj [u v])
+                      (visit v)
+                      (swap! low update u min (@low v))
+                      (when (or (and (nil? (@parent u)) (> (inc children) 1))
+                                (and (some? (@parent u)) (>= (@low v) (@discovery u))))
+                        (swap! articulation conj u))
+                      (when (< (@low v) (@discovery u)) nil)
+                      (when (> (@low v) (@discovery u))
+                        (swap! bridges conj (vec (sort-by str [u v]))))
+                      (when (>= (@low v) (@discovery u))
+                        (pop-component [u v]))
+                      (recur (inc children) (next nbrs)))
+                    (do
+                      (when (and (not= v (@parent u))
+                                 (< (@discovery v) (@discovery u)))
+                        (swap! stack conj [u v])
+                        (swap! low update u min (@discovery v)))
+                      (recur children (next nbrs))))
+                  (when (and (nil? (@parent u)) (= children 1))
+                    ;; A root with one child is not an articulation point.
+                    (swap! articulation disj u)))))]
+      (doseq [v (nodes g) :when (not (contains? @discovery v))]
+        (visit v)
+        (when (and (empty? (successors g v)) (not (some #{#{v}} @components)))
+          (swap! components conj #{v}))
+        (when (seq @stack)
+          (let [es @stack]
+            (reset! stack [])
+            (swap! components conj (set (mapcat identity es))))))
+      {:articulation @articulation :bridges @bridges :components @components})))
+
+(defn articulation-points
+  "Returns the articulation points of an undirected graph as a set."
+  [g]
+  (:articulation (tarjan-blocks g)))
+
+(defn bridges
+  "Returns the bridges of an undirected graph as [source destination] vectors."
+  [g]
+  (:bridges (tarjan-blocks g)))
+
+(defn biconnected-components
+  "Returns biconnected components as a vector of node sets."
+  [g]
+  (:components (tarjan-blocks g)))
+
+(defn k-core
+  "With k, returns the induced k-core subgraph. Without k, returns node
+  coreness values."
+  ([g]
+   (let [active (set (nodes g))]
+    (loop [active active degrees (into {} (map (fn [v] [v (count (successors g v))]) active))
+            coreness {} current-k 0]
+       (if (empty? active)
+         coreness
+         (let [[v degree] (apply min-key val (select-keys degrees active))
+               current-k (max current-k degree)]
+           (recur (disj active v)
+                  (reduce (fn [ds n] (if (active n) (update ds n #(max 0 (dec %))) ds))
+                          degrees (successors g v))
+                  (assoc coreness v current-k) current-k))))))
+  ([g k]
+   (graph/subgraph g (for [[v core] (k-core g) :when (>= core k)] v))))
+
+(defn eccentricity
+  "With a node, returns its greatest finite shortest-path distance. With only
+  a graph, returns a map of node eccentricities; disconnected nodes are +Inf."
+  ([g node]
+   (let [ds (finite-distance-map g node)]
+     (if (= (count ds) (count (nodes g)))
+       (reduce max 0 (vals ds))
+       #?(:clj Double/POSITIVE_INFINITY :cljs js/Infinity))))
+  ([g]
+   (into {} (map (fn [v] [v (eccentricity g v)]) (nodes g)))))
+
+(defn radius
+  "Returns the minimum graph eccentricity."
+  [g]
+  (reduce min #?(:clj Double/POSITIVE_INFINITY :cljs js/Infinity) (vals (eccentricity g))))
+
+(defn diameter
+  "Returns the maximum graph eccentricity."
+  [g]
+  (reduce max 0 (vals (eccentricity g))))
 
 ;; ;; Todo: MST, coloring, matching, etc etc

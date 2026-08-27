@@ -14,7 +14,11 @@
                               prim-mst-edges prim-mst astar-path astar-dist
                               degeneracy-ordering maximal-cliques simple-paths
                               subgraph? eql? isomorphism? digraph-all-cycles
-                              clustering-coefficient]]
+                              clustering-coefficient pagerank degree-centrality
+                              closeness-centrality betweenness-centrality
+                              eigenvector-centrality hits articulation-points
+                              bridges biconnected-components k-core eccentricity
+                              radius diameter]]
             [loom.derived :refer [mapped-by]]
             clojure.walk
             #?@(:clj [[clojure.test :refer :all]]
@@ -717,3 +721,37 @@
     (is (= 0 (clustering-coefficient path))))
   ;; fewer than two neighbors -> 0
   (is (= 0 (clustering-coefficient (graph [:a :b]) :a))))
+
+(deftest centrality-algorithms-test
+  (let [star (graph [:c :a] [:c :b] [:c :d])
+        path (graph [:a :b] [:b :c] [:c :d])
+        hits-graph (digraph [:h :a] [:h :b] [:h :c])
+        pr (pagerank star :iterations 100 :tol 1e-12)]
+    (is (every? #(< (Math/abs (- (get (degree-centrality star) (first %)) (second %))) 1e-12)
+                (map vector [:c :a :b :d] [1.0 (/ 1.0 3.0) (/ 1.0 3.0) (/ 1.0 3.0)])))
+    (is (= 1 (get (degree-centrality star) :c)))
+    (is (> (pr :c) (pr :a)))
+    (is (< (Math/abs (- 1.0 (reduce + (vals pr)))) 1e-9))
+    (is (= 3 (eccentricity path :a)))
+    (is (= {:a 3 :b 2 :c 2 :d 3} (eccentricity path)))
+    (is (= 2 (radius path)))
+    (is (= 3 (diameter path)))
+    (is (= (/ 2 3.0) (get (betweenness-centrality path) :b)))
+    (is (= 1/2 (get (closeness-centrality path) :a)))
+    (is (= (get (eigenvector-centrality star) :a)
+           (get (eigenvector-centrality star) :b)))
+    (is (= :c (key (apply max-key val (eigenvector-centrality star)))))
+    (is (= :h (key (apply max-key val (:hubs (hits hits-graph))))))
+    (is (= (set [:a :b :c :h])
+           (set (keys (:authorities (hits hits-graph))))))))
+
+(deftest structural-algorithms-test
+  (let [g (graph [:a :b] [:b :c] [:c :a] [:b :d] [:d :e])
+        triangle (graph [:a :b] [:b :c] [:c :a])]
+    (is (= #{:b :d} (articulation-points g)))
+    (is (= #{[:b :d] [:d :e]} (set (bridges g))))
+    (is (= #{#{:a :b :c} #{:b :d} #{:d :e}}
+           (set (biconnected-components g))))
+    (is (= #{:a :b :c} (set (nodes (k-core g 2)))))
+    (is (= 2 (get (k-core triangle) :a)))
+    (is (= 2 (get (k-core triangle) :b)))))

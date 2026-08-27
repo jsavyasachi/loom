@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.4.0] - Unreleased
+
+**New:**
+- Add PageRank, degree, closeness, betweenness, eigenvector, and HITS centrality
+  and ranking algorithms.
+- Add articulation points, bridges, biconnected components, k-core, eccentricity,
+  radius, and diameter graph structure algorithms.
+
 ## [1.3.2] - 2026-08-17
 
 ### Fixed
