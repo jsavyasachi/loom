@@ -52,6 +52,15 @@ io.github.jsavyasachi/loom {:git/tag "1.3.0" :git/sha "c666221b9c3ad9e600a48fe48
     loom.io      - read, write, and view graphs in external formats
     loom.derived - derive graphs from existing graphs using maps and filters
 
+Graph I/O
+
+`loom.io` supports GraphML, GEXF, EDN-encoded edge lists, adjacency JSON, and
+DOT import. Use `write-graphml`, `write-gexf`, `write-edge-list`, and
+`write-adjacency-json` with their corresponding `read-*` functions;
+`dot-str`/`dot` remain available for DOT export and `read-dot` imports DOT.
+Weighted graphs, directedness, node values, and Loom attributes are preserved
+by the matching writer/reader pairs.
+
 ### Documentation
 
 [API Reference](https://cljdoc.org/d/net.clojars.savya/loom/CURRENT)
