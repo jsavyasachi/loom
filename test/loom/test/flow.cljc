@@ -1,6 +1,7 @@
 (ns loom.test.flow
   (:require [loom.graph :refer (weighted-digraph successors predecessors weight)]
-            [loom.flow :refer (edmonds-karp is-admissible-flow?)]
+            [loom.attr :refer [add-attr]]
+            [loom.flow :as flow :refer (edmonds-karp is-admissible-flow?)]
             [loom.alg :refer [max-flow]]
             #?@(:clj [[clojure.test :refer :all]]
                 :cljs [cljs.test]))
@@ -52,3 +53,30 @@
          (and (= max-value value)
               (is-admissible-flow? flow (weight network) :s :t)))
        23 g1))
+
+(deftest min-cost-flow-convenience-test
+  (testing "Minimum-cost flow over a Loom graph"
+    (let [g (-> (weighted-digraph
+                 [:s :a]
+                 [:s :b]
+                 [:a :b]
+                 [:a :t]
+                 [:b :t])
+                (add-attr :s :demand -5)
+                (add-attr :t :demand 5)
+                (add-attr [:s :a] :capacity 3)
+                (add-attr [:s :a] :cost 1)
+                (add-attr [:s :b] :capacity 4)
+                (add-attr [:s :b] :cost 2)
+                (add-attr [:a :b] :capacity 2)
+                (add-attr [:a :b] :cost 1)
+                (add-attr [:a :t] :capacity 3)
+                (add-attr [:a :t] :cost 3)
+                (add-attr [:b :t] :capacity 4)
+                (add-attr [:b :t] :cost 1))
+          [flow-map cost] (flow/min-cost-flow g)]
+      (is (= 16 cost))
+      (is (= {:s {:a 1 :b 4}
+              :a {:b 0 :t 1}
+              :b {:t 4}}
+             flow-map)))))

@@ -174,6 +174,20 @@ Pathfinding:
 (dijkstra-path-dist wg :a :d)
 => [(:a :b :e :d) 20]
 ```
+
+Flow:
+```clojure
+;; max-flow uses weighted edges as capacities and returns [flow-map value]
+(max-flow wdg :a :d)
+
+;; min-cost-flow reads :demand from nodes and :capacity/:cost from edges.
+;; Negative demand supplies flow; positive demand consumes it. It returns
+;; [flow-map total-cost], matching max-flow's result shape.
+(min-cost-flow g)
+
+;; Attribute names can be customized with an optional map.
+(min-cost-flow g {:capacity :cap :cost :unit-cost :demand :balance})
+```
 Other stuff:
 ```clojure
 (connected-components g)

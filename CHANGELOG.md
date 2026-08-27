@@ -15,6 +15,9 @@
   and ranking algorithms.
 - Articulation points, bridges, biconnected components, k-core, eccentricity,
   radius, and diameter graph structure algorithms.
+- `loom.flow/min-cost-flow` exposes the existing network-simplex solver as a
+  graph-level operation over node demand and edge capacity/cost attributes,
+  returning `[flow-map total-cost]` consistently with `max-flow`.
 
 This is a backward-compatible minor release: existing simple-graph protocol
 implementations and endpoint-shaped `edges` behavior are unchanged.
