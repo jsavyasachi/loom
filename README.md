@@ -61,6 +61,21 @@ DOT import. Use `write-graphml`, `write-gexf`, `write-edge-list`, and
 Weighted graphs, directedness, node values, and Loom attributes are preserved
 by the matching writer/reader pairs.
 
+### Generators and validation
+
+`loom.gen` is portable across Clojure and ClojureScript. The seeded generator
+arities of `gen-newman-watts`, `gen-barabasi-albert`, `gen-rand`, and `gen-rand-p`
+use the same deterministic PRNG on both platforms, so the same seed produces
+the same graph. Omit `:seed` (or the positional seed) for a time-based seed.
+
+Graph algorithms throw `ExceptionInfo`/`ex-info` with structured data for invalid
+inputs. Traversal and path functions report `:type :loom.alg/missing-node`;
+Dijkstra and A* report `:type :loom.alg/negative-weight` because they require
+non-negative edge weights. Bellman-Ford and Johnson continue to accept negative
+weights (subject to their negative-cycle rules). Maximum flow reports
+`:loom.flow/missing-node`, `:loom.flow/negative-capacity`, or
+`:loom.flow/malformed-constraint` for invalid source/sink or capacity inputs.
+
 ### Documentation
 
 [API Reference](https://cljdoc.org/d/net.clojars.savya/loom/CURRENT)

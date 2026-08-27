@@ -18,6 +18,12 @@
 - `loom.flow/min-cost-flow` exposes the existing network-simplex solver as a
   graph-level operation over node demand and edge capacity/cost attributes,
   returning `[flow-map total-cost]` consistently with `max-flow`.
+- `loom.gen` is now portable to ClojureScript with a cross-platform seeded
+  PRNG; seeded graph generators now produce identical results on the JVM
+  and JS.
+- Structured `ex-info` validation for missing algorithm nodes, negative
+  weights passed to Dijkstra/A*, and malformed maximum-flow capacities and
+  source/sink constraints.
 
 This is a backward-compatible minor release: existing simple-graph protocol
 implementations and endpoint-shaped `edges` behavior are unchanged.

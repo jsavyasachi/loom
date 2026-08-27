@@ -25,6 +25,13 @@
                 :cljs [cljs.test]))
   #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing are is)])]))
 
+(defn- exception-data [f]
+  (try
+    (f)
+    nil
+    (catch #?(:clj clojure.lang.ExceptionInfo :cljs cljs.core/ExceptionInfo) e
+      (ex-data e))))
+
 ;; http://en.wikipedia.org/wiki/Dijkstra's_algorithm
 (def g1
   (weighted-graph
@@ -294,6 +301,18 @@
        [[:r :o :p] 10] (dijkstra-path-dist g2 :r :p)
        #{:r :g :b :o :p} (set (map first (dijkstra-traverse g2)))
        {:r {:o 8 :b 5} :b {:g 8} :o {:p 10}} (dijkstra-span g2 :r)))
+
+(deftest validation-test
+  (testing "path algorithms reject missing nodes with structured errors"
+    (is (= {:type :loom.alg/missing-node :node :missing :operation :bf-path}
+           (exception-data #(bf-path g4 :a :missing)))))
+  (testing "Dijkstra and A* reject negative weights"
+    (let [g (weighted-digraph [:a :b -1])]
+      (is (= {:type :loom.alg/negative-weight :algorithm :dijkstra}
+             (exception-data #(dijkstra-path g :a :b))))
+      (is (= {:type :loom.alg/negative-weight :algorithm :astar}
+             (exception-data #(astar-path g :a :b nil))))
+      (is (vector? (bellman-ford g :a))))))
 
 (deftest johnson-test
   (are [expected got] (= expected got)

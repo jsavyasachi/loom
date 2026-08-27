@@ -28,6 +28,20 @@ can use these functions."
     [#{} (transient [])]
     nodes))))
 
+(defn- validate-node! [g node operation]
+  (when-not (graph/has-node? g node)
+    (throw (ex-info (str "Node not found: " node)
+                    {:type :loom.alg/missing-node
+                     :node node
+                     :operation operation}))))
+
+(defn- validate-non-negative-weights! [g algorithm]
+  (when (and (weighted? g)
+             (some (fn [edge] (neg? (graph/weight g edge))) (edges g)))
+    (throw (ex-info (str algorithm " requires non-negative edge weights")
+                    {:type :loom.alg/negative-weight
+                     :algorithm algorithm}))))
+
 (defn pre-traverse
   "Traverses graph g depth-first from start. Returns a lazy seq of nodes.
   When no starting node is provided, traverses the entire graph, connected
@@ -35,6 +49,7 @@ can use these functions."
   ([g]
      (traverse-all (nodes g) (partial gen/pre-traverse (graph/successors g))))
   ([g start]
+     (validate-node! g start :pre-traverse)
      (gen/pre-traverse (graph/successors g) start)))
 
 (defn pre-span
@@ -52,6 +67,7 @@ can use these functions."
        [#{} {}]
        (nodes g))))
   ([g start]
+     (validate-node! g start :pre-span)
      (gen/pre-span (graph/successors g) start)))
 
 (defn post-traverse
@@ -60,6 +76,7 @@ can use these functions."
   ([g]
      (traverse-all (nodes g) (partial gen/post-traverse (graph/successors g))))
   ([g start & opts]
+     (validate-node! g start :post-traverse)
      (apply gen/post-traverse (graph/successors g) start opts)))
 
 (defn topsort
@@ -77,6 +94,7 @@ can use these functions."
                                (graph/successors g) n seen seen)]
              (recur (into seen cresult) (concat cresult result) ns))))))
   ([g start]
+     (validate-node! g start :topsort)
      (gen/topsort-component (graph/successors g) start)))
 
 (defn bf-traverse
@@ -98,6 +116,7 @@ can use these functions."
        [[] {}]
        (nodes g))))
   ([g start]
+     (validate-node! g start :bf-traverse)
      (gen/bf-traverse (graph/successors g) start))
   ([g start & opts]
      (apply gen/bf-traverse (graph/successors g) start opts)))
@@ -122,6 +141,8 @@ can use these functions."
   "Returns a path from start to end with the fewest hops (i.e. irrespective
   of edge weights)"
   [g start end & opts]
+  (validate-node! g start :bf-path)
+  (validate-node! g end :bf-path)
   (apply gen/bf-path (graph/successors g) start end opts))
 
 (defn bf-path-bi
@@ -138,26 +159,37 @@ can use these functions."
   the format {node [distance predecessor]}. When f is provided,
   returns a lazy-seq of (f node state) for each node"
   ([g]
+     (validate-non-negative-weights! g :dijkstra)
      (gen/dijkstra-traverse
       (graph/successors g) (graph/weight g) (first (nodes g))))
   ([g start]
+     (validate-node! g start :dijkstra-traverse)
+     (validate-non-negative-weights! g :dijkstra)
      (gen/dijkstra-traverse (graph/successors g) (graph/weight g) start vector))
   ([g start f]
+     (validate-node! g start :dijkstra-traverse)
+     (validate-non-negative-weights! g :dijkstra)
      (gen/dijkstra-traverse (graph/successors g) (graph/weight g) start f)))
 
 (defn dijkstra-span
   "Finds all shortest distances from start. Returns a map in the
   format {node {successor distance}}"
   ([g]
+     (validate-non-negative-weights! g :dijkstra)
      (gen/dijkstra-span
       (graph/successors g) (graph/weight g) (first (nodes g))))
   ([g start]
+     (validate-node! g start :dijkstra-span)
+     (validate-non-negative-weights! g :dijkstra)
      (gen/dijkstra-span (graph/successors g) (graph/weight g) start)))
 
 (defn dijkstra-path-dist
   "Finds the shortest path from start to end. Returns a vector:
   [path distance]"
   [g start end]
+  (validate-node! g start :dijkstra-path)
+  (validate-node! g end :dijkstra-path)
+  (validate-non-negative-weights! g :dijkstra)
   (gen/dijkstra-path-dist (graph/successors g) (graph/weight g) start end))
 
 (defn dijkstra-path
@@ -220,6 +252,7 @@ can use these functions."
    from the source exists, and false otherwise, indicating that no
    solution exists."
   [g start]
+  (validate-node! g start :bellman-ford)
   (let [initial-estimates (init-estimates g start)
         ;;relax-edges is calculated for all edges V-1 times
         [costs paths] (reduce (fn [estimates _]
@@ -287,6 +320,8 @@ can use these functions."
   a collection of nodes in traversal order. With :max-depth, only returns paths
   with fewer than max-depth nodes."
   [g start end & {:keys [max-depth] :or {max-depth nil}}]
+  (validate-node! g start :simple-paths)
+  (validate-node! g end :simple-paths)
   (if (= start end)
     [[start]]
     (letfn [(create-path-map []
@@ -563,6 +598,32 @@ can use these functions."
      :method :algorithm to use.  Currently, the only option is :edmonds-karp ."
   [g source sink & {:keys [method] :or {method :edmonds-karp}}]
   (let [method-set #{:edmonds-karp}
+        _ (when-not (weighted? g)
+            (throw (ex-info "Maximum flow requires a weighted graph"
+                            {:type :loom.flow/malformed-constraint
+                             :constraint :weighted-graph})))
+        _ (when-not (graph/has-node? g source)
+            (throw (ex-info (str "Flow source node not found: " source)
+                            {:type :loom.flow/missing-node
+                             :node source
+                             :role :source})))
+        _ (when-not (graph/has-node? g sink)
+            (throw (ex-info (str "Flow sink node not found: " sink)
+                            {:type :loom.flow/missing-node
+                             :node sink
+                             :role :sink})))
+        _ (when (= source sink)
+            (throw (ex-info "Flow source and sink must be different nodes"
+                            {:type :loom.flow/malformed-constraint
+                             :source source
+                             :sink sink})))
+        _ (doseq [edge (graph/edges g)
+                  :let [capacity (graph/weight g edge)]
+                  :when (neg? capacity)]
+            (throw (ex-info (str "Flow capacity must be non-negative: " edge)
+                            {:type :loom.flow/negative-capacity
+                             :edge (vec (take 2 edge))
+                             :capacity capacity})))
         n (graph/successors g),
         i (predecessors g),
         c (graph/weight g),
@@ -639,6 +700,9 @@ can use these functions."
 (defn astar-path
   "Returns the shortest path using A* algorithm. Returns a map of predecessors."
   ([g src target heur]
+     (validate-node! g src :astar-path)
+     (validate-node! g target :astar-path)
+     (validate-non-negative-weights! g :astar)
      (let [heur (if (nil? heur) (fn [x y] 0) heur)
            ;; store in q => {u [heur+dist parent act est]}
            q (pm/priority-map-keyfn first src [0 nil 0 0])
