@@ -41,6 +41,22 @@ on adjacency lists."
   (src [edge] "Returns the source node of the edge")
   (dest [edge] "Returns the dest node of the edge"))
 
+(defprotocol MultiGraph
+  (edges-with-ids [g] "Returns edge objects, including parallel-edge keys")
+  (out-edges-with-ids [g node] "Returns keyed outgoing edge objects"))
+
+(defrecord MultiEdge [src dest key])
+
+(extend-type MultiEdge
+  Edge
+  (src [edge] (:src edge))
+  (dest [edge] (:dest edge)))
+
+(defn edge-key
+  "Returns the stable key identifying a keyed multigraph edge."
+  [edge]
+  (:key edge))
+
 ; Default implementation for vectors.
 (extend-type #?(:clj clojure.lang.IPersistentVector
                 :cljs cljs.core.PersistentVector)
@@ -396,6 +412,132 @@ on adjacency lists."
   default-weighted-graph-impl)
 
 ;;;
+;;; Keyed multigraphs. Adjacency is {source {destination {edge-key weight}}}.
+;;; The public `edges` view remains endpoint-shaped for compatibility; keyed
+;;; edge objects are available through `edges-with-ids`.
+;;;
+
+(defrecord BasicEditableMultiGraph [nodeset adj next-key])
+(defrecord BasicEditableMultiDigraph [nodeset adj in next-key])
+
+(defn- fresh-edge-key [g n1 n2]
+  (loop [k (:next-key g)]
+    (if (contains? (get-in g [:adj n1 n2]) k)
+      (recur (inc k))
+      k)))
+
+(defn- multi-edge-data [e default-weight]
+  (if (instance? MultiEdge e)
+    [(src e) (dest e) (edge-key e) default-weight]
+    (let [[n1 n2 a b] e]
+      (if (nil? b)
+        [n1 n2 nil (or a default-weight)]
+        [n1 n2 a (or b default-weight)]))))
+
+(defn- multi-edge-objects [g node]
+  (for [[n2 keyed] (get-in g [:adj node])
+        [k _] keyed]
+    (MultiEdge. node n2 k)))
+
+(defn- multi-all-edge-objects [g]
+  (mapcat #(multi-edge-objects g %) (nodes g)))
+
+(defn- multi-in-edge-objects [g node]
+  (for [[n1 keyed] (get-in g [:in node])
+        [k _] keyed]
+    (MultiEdge. n1 node k)))
+
+(defn- add-multi-edge [g e directed?]
+  (let [[n1 n2 supplied-key w] (multi-edge-data e *default-weight*)
+        k (or supplied-key (fresh-edge-key g n1 n2))
+        g (-> g
+              (update-in [:nodeset] conj n1 n2)
+              (assoc-in [:adj n1 n2 k] w)
+              (update :next-key max (if (number? k) (inc k) (:next-key g))))]
+    (if directed?
+      (assoc-in g [:in n2 n1 k] w)
+      (assoc-in g [:adj n2 n1 k] w))))
+
+(defn- remove-multi-edge [g e directed?]
+  (let [[n1 n2 k _] (multi-edge-data e nil)]
+    (if (nil? k)
+      (let [g (update-in g [:adj n1] dissoc n2)]
+        (if directed? (update-in g [:in n2] dissoc n1)
+            (update-in g [:adj n2] dissoc n1)))
+      (let [g (update-in g [:adj n1 n2] dissoc k)
+            g (if directed? (update-in g [:in n2 n1] dissoc k)
+                  (update-in g [:adj n2 n1] dissoc k))]
+        g))))
+
+(defn- multi-weight [g e]
+  (get-in g [:adj (src e) (dest e) (edge-key e)]))
+
+(defn- remove-multi-nodes [g ns directed?]
+  (let [removed (set ns)
+        strip (fn [adj]
+                (into {} (map (fn [[n nbrs]]
+                                [n (apply dissoc nbrs removed)]) adj)))]
+    (assoc (assoc (assoc g
+                         :nodeset (apply disj (:nodeset g) removed))
+                  :adj (strip (apply dissoc (:adj g) removed)))
+           :in (when directed? (strip (apply dissoc (:in g) removed))))))
+
+(extend BasicEditableMultiGraph
+  Graph
+  {:nodes (fn [g] (:nodeset g))
+   :edges (fn [g] (for [e (multi-all-edge-objects g)] [(src e) (dest e)]))
+   :has-node? (fn [g node] (contains? (:nodeset g) node))
+   :has-edge? (fn [g n1 n2] (seq (get-in g [:adj n1 n2])))
+   :successors* (fn [g node] (keys (get-in g [:adj node])))
+   :out-degree (fn [g node] (reduce + 0 (map count (vals (get-in g [:adj node])))))
+   :out-edges (fn [g node] (for [e (multi-edge-objects g node)] [(src e) (dest e)]))}
+  MultiGraph
+  {:edges-with-ids multi-all-edge-objects
+   :out-edges-with-ids multi-edge-objects}
+  WeightedGraph
+  {:weight* (fn
+              ([g e] (multi-weight g e))
+              ([g n1 n2] (some-> (get-in g [:adj n1 n2]) vals first)))}
+  EditableGraph
+  {:add-nodes* (fn [g ns] (update g :nodeset into ns))
+   :add-edges* (fn [g es] (reduce #(add-multi-edge %1 %2 false) g es))
+   :remove-nodes* (fn [g ns] (remove-multi-nodes g ns false))
+   :remove-edges* (fn [g es] (reduce #(remove-multi-edge %1 %2 false) g es))
+   :remove-all (fn [g] (assoc g :nodeset #{} :adj {} :next-key 0))})
+
+(extend BasicEditableMultiDigraph
+  Graph
+  {:nodes (fn [g] (:nodeset g))
+          :edges (fn [g] (for [e (multi-all-edge-objects g)] [(src e) (dest e)]))
+          :has-node? (fn [g node] (contains? (:nodeset g) node))
+          :has-edge? (fn [g n1 n2] (seq (get-in g [:adj n1 n2])))
+          :successors* (fn [g node] (keys (get-in g [:adj node])))
+          :out-degree (fn [g node] (reduce + 0 (map count (vals (get-in g [:adj node])))))
+   :out-edges (fn [g node] (for [e (multi-edge-objects g node)] [(src e) (dest e)]))}
+  MultiGraph
+  {:edges-with-ids multi-all-edge-objects
+   :out-edges-with-ids multi-edge-objects}
+  WeightedGraph
+  {:weight* (fn
+              ([g e] (multi-weight g e))
+              ([g n1 n2] (some-> (get-in g [:adj n1 n2]) vals first)))}
+  EditableGraph
+  {:add-nodes* (fn [g ns] (update g :nodeset into ns))
+   :add-edges* (fn [g es] (reduce #(add-multi-edge %1 %2 true) g es))
+   :remove-nodes* (fn [g ns] (remove-multi-nodes g ns true))
+   :remove-edges* (fn [g es] (reduce #(remove-multi-edge %1 %2 true) g es))
+   :remove-all (fn [g] (assoc g :nodeset #{} :adj {} :in {} :next-key 0))}
+  Digraph
+  {:predecessors* (fn [g node] (keys (get-in g [:in node])))
+   :in-degree (fn [g node] (reduce + 0 (map count (vals (get-in g [:in node])))))
+   :in-edges (fn [g node] (for [e (multi-in-edge-objects g node)] [(src e) (dest e)]))
+   :transpose (fn [g]
+                (reduce (fn [tg e]
+                          (add-edges* tg [[(dest e) (src e) (edge-key e) (weight g e)]]))
+                        (BasicEditableMultiDigraph. (:nodeset g) {} {} (:next-key g))
+                        (edges-with-ids g)))})
+
+;;;
 ;;; FlyGraph: a read-only graph that uses provided functions to return values for
 ;;; nodes and edges. Members that are not functions are returned as-is. Edges can
 ;;; be inferred when nodes and successors are provided. Nodes and edges can be
@@ -551,6 +693,64 @@ on adjacency lists."
              :else (add-nodes g init)))]
     (reduce build g inits)))
 
+(defn- batch-build
+  [kind es]
+  (let [weighted (#{:weighted-graph :weighted-digraph} kind)
+        directed (#{:digraph :weighted-digraph} kind)
+        [nodes adj in] (reduce
+                        (fn [[nodes adj in] [n1 n2 w]]
+                          (let [nodes (conj! (conj! nodes n1) n2)
+                                nbrs (or (get adj n1) (transient (if weighted {} #{})))
+                                nbrs (if weighted
+                                       (assoc! nbrs n2 (or w *default-weight*))
+                                       (conj! nbrs n2))
+                                adj (assoc! adj n1 nbrs)]
+                            (if directed
+                              (let [preds (or (get in n2) (transient (if weighted {} #{})))
+                                    preds (if weighted
+                                            (assoc! preds n1 (or w *default-weight*))
+                                            (conj! preds n1))]
+                                [nodes adj (assoc! in n2 preds)])
+                              (let [nbrs (or (get adj n2) (transient (if weighted {} #{})))
+                                    nbrs (if weighted
+                                           (assoc! nbrs n1 (or w *default-weight*))
+                                           (conj! nbrs n1))]
+                                [nodes (assoc! adj n2 nbrs) in]))))
+                        [(transient #{}) (transient {}) (when directed (transient {}))]
+                        es)]
+    (let [adj (persistent! adj)
+          adj (into {} (map (fn [[n nbrs]] [n (persistent! nbrs)]) adj))
+          nodes (persistent! nodes)]
+      (if directed
+        (let [in (persistent! in)
+              in (into {} (map (fn [[n nbrs]] [n (persistent! nbrs)]) in))]
+          (case kind
+            :digraph (BasicEditableDigraph. nodes adj in)
+            :weighted-digraph (BasicEditableWeightedDigraph. nodes adj in)))
+        (case kind
+          :graph (BasicEditableGraph. nodes adj)
+          :weighted-graph (BasicEditableWeightedGraph. nodes adj))))))
+
+(defn graph-from-edges
+  "Builds an unweighted undirected graph from a bulk edge sequence."
+  [es]
+  (batch-build :graph es))
+
+(defn digraph-from-edges
+  "Builds an unweighted directed graph from a bulk edge sequence."
+  [es]
+  (batch-build :digraph es))
+
+(defn weighted-graph-from-edges
+  "Builds a weighted undirected graph from [source destination weight] edges."
+  [es]
+  (batch-build :weighted-graph es))
+
+(defn weighted-digraph-from-edges
+  "Builds a weighted directed graph from [source destination weight] edges."
+  [es]
+  (batch-build :weighted-digraph es))
+
 (defn graph
   "Creates an unweighted, undirected graph. inits can be edges, adjacency maps,
   or graphs"
@@ -574,6 +774,18 @@ on adjacency lists."
   or graphs"
   [& inits]
   (apply build-graph (BasicEditableWeightedDigraph. #{} {} {}) inits))
+
+(defn multigraph
+  "Creates a keyed, weighted, undirected multigraph. Edges may be [u v],
+  [u v weight], or [u v key weight]."
+  [& inits]
+  (apply build-graph (BasicEditableMultiGraph. #{} {} 0) inits))
+
+(defn multidigraph
+  "Creates a keyed, weighted, directed multigraph. Edges may be [u v],
+  [u v weight], or [u v key weight]."
+  [& inits]
+  (apply build-graph (BasicEditableMultiDigraph. #{} {} {} 0) inits))
 
 (defn fly-graph
   "Creates a read-only, ad-hoc graph which uses the provided functions

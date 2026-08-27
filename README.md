@@ -81,6 +81,23 @@ Create a graph:
 (def rwg (gen-rand (weighted-graph) 10 20 :max-weight 100))
 (def fg (fly-graph :successors range :weight (constantly 77)))
 ```
+
+For parallel edges, use `multigraph` or `multidigraph`. Each edge receives a
+stable key; use `edges-with-ids` (or `out-edges-with-ids`) to address a specific
+edge and pass it to `weight` or `loom.attr`:
+
+```clojure
+(def mg (multigraph [1 2 :rail 10] [1 2 :road 20]))
+(map edge-key (edges-with-ids mg))
+;; => (:rail :road :rail :road) ; undirected edges are exposed in both directions
+(weight mg (first (filter #(= :rail (edge-key %))
+                          (out-edges-with-ids mg 1))))
+;; => 10
+```
+
+For large bulk edge lists, `graph-from-edges`, `digraph-from-edges`,
+`weighted-graph-from-edges`, and `weighted-digraph-from-edges` build adjacency
+maps with transients and persist them once at the end.
 If you have [GraphViz](http://www.graphviz.org) installed, and its binaries are in the path, you can view graphs with <code>loom.io/view</code>:
 ```clojure
 (view wdg) ;opens image in default image viewer

@@ -45,7 +45,38 @@ loom.graph. Attributes can provide labels and styles (color, thickness, and so o
                 (attrs g (src node-or-edge) (dest node-or-edge))))
             ([g n1 n2]
                (let [attributes (get-in g [:attrs n1 ::edge-attrs n2])]
-                 (when (seq attributes) attributes))))})
+               (when (seq attributes) attributes))))})
+
+(def-protocol-impls multi-attr-graph-impl
+  {:add-attr (fn
+               ([g node-or-edge k v]
+                (if (has-node? g node-or-edge)
+                  (assoc-in g [:attrs node-or-edge k] v)
+                  (let [n1 (src node-or-edge) n2 (dest node-or-edge) ek (graph/edge-key node-or-edge)
+                        g (assoc-in g [:attrs n1 ::edge-attrs ek k] v)]
+                    (if (directed? g) g
+                        (assoc-in g [:attrs n2 ::edge-attrs ek k] v)))))
+               ([g n1 n2 k v]
+                (assoc-in g [:attrs n1 ::edge-attrs n2 k] v)))
+   :remove-attr (fn
+                  ([g node-or-edge k]
+                   (if (has-node? g node-or-edge)
+                     (update-in g [:attrs node-or-edge] dissoc k)
+                     (update-in g [:attrs (src node-or-edge) ::edge-attrs (graph/edge-key node-or-edge)] dissoc k)))
+                  ([g n1 n2 k]
+                   (update-in g [:attrs n1 ::edge-attrs n2] dissoc k)))
+   :attr (fn
+           ([g node-or-edge k]
+            (if (has-node? g node-or-edge)
+              (get-in g [:attrs node-or-edge k])
+              (get-in g [:attrs (src node-or-edge) ::edge-attrs (graph/edge-key node-or-edge) k])))
+           ([g n1 n2 k] (get-in g [:attrs n1 ::edge-attrs n2 k])))
+   :attrs (fn
+            ([g node-or-edge]
+             (if (has-node? g node-or-edge)
+               (dissoc (get-in g [:attrs node-or-edge]) ::edge-attrs)
+               (get-in g [:attrs (src node-or-edge) ::edge-attrs (graph/edge-key node-or-edge)])))
+            ([g n1 n2] (get-in g [:attrs n1 ::edge-attrs n2])))})
 
 (extend loom.graph.BasicEditableGraph
   AttrGraph
@@ -62,6 +93,14 @@ loom.graph. Attributes can provide labels and styles (color, thickness, and so o
 (extend loom.graph.BasicEditableWeightedDigraph
   AttrGraph
   default-attr-graph-impl)
+
+(extend loom.graph.BasicEditableMultiGraph
+  AttrGraph
+  multi-attr-graph-impl)
+
+(extend loom.graph.BasicEditableMultiDigraph
+  AttrGraph
+  multi-attr-graph-impl)
 
 (extend loom.graph.FlyGraph
   AttrGraph
@@ -96,8 +135,8 @@ loom.graph. Attributes can provide labels and styles (color, thickness, and so o
   "Adds an attribute to the given edges"
   [g k v edges]
   (reduce
-   (fn [g [n1 n2]]
-     (add-attr g n1 n2 k v))
+   (fn [g edge]
+     (add-attr g edge k v))
    g edges))
 
 (defn add-attr-to-all
@@ -105,7 +144,9 @@ loom.graph. Attributes can provide labels and styles (color, thickness, and so o
   [g k v]
   (-> g
       (add-attr-to-nodes k v (nodes g))
-      (add-attr-to-edges k v (edges g))))
+      (add-attr-to-edges k v (if (satisfies? graph/MultiGraph g)
+                               (graph/edges-with-ids g)
+                               (edges g)))))
 
 (defn add-attrs-to-all
   "Adds attributes to all nodes and edges"
@@ -114,7 +155,9 @@ loom.graph. Attributes can provide labels and styles (color, thickness, and so o
    (fn [g [k v]]
      (-> g
          (add-attr-to-nodes k v (nodes g))
-         (add-attr-to-edges k v (edges g))))
+         (add-attr-to-edges k v (if (satisfies? graph/MultiGraph g)
+                                  (graph/edges-with-ids g)
+                                  (edges g)))))
    g (partition 2 kvs)))
 
 

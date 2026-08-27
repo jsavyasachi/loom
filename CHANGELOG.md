@@ -7,6 +7,13 @@
 - `loom.io` readers and writers for GraphML, GEXF, edge lists, and adjacency
   JSON, plus a DOT reader. Matching writer/reader pairs preserve directedness,
   weights, node values, and Loom attributes.
+- Keyed `multigraph` and `multidigraph` constructors with stable parallel
+  edge identities, per-edge weights, and attribute support through
+  `edges-with-ids`.
+- Transient-backed bulk constructors for the four simple graph variants.
+
+This is a backward-compatible minor release: existing simple-graph protocol
+implementations and endpoint-shaped `edges` behavior are unchanged.
 
 ## [1.3.2] - 2026-08-17
 
