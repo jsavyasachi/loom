@@ -1,5 +1,6 @@
 (ns loom.test.graph
-  (:require [loom.graph :refer (graph digraph weighted-graph weighted-digraph
+  (:require [loom.graph :as graph
+            :refer (graph digraph weighted-graph weighted-digraph
                                       multigraph multidigraph graph-from-edges
                                       digraph-from-edges weighted-graph-from-edges
                                       weighted-digraph-from-edges edges-with-ids
@@ -9,7 +10,6 @@
                                       weight graph? Graph directed? Digraph weighted?
                                       WeightedGraph subgraph add-path add-cycle)]
             [loom.attr :as attr]
-            [loom.graph :as graph]
             #?@(:clj [[clojure.test :refer (deftest testing are is)]])
             [loom.test.compliance-tester :refer [graph-test digraph-test
                                                  weighted-graph-test weighted-digraph-test]])
