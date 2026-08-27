@@ -1055,7 +1055,7 @@ can use these functions."
                (/ reachable (reduce + (vals ds))))])))
 
 (defn betweenness-centrality
-  "Returns normalized betweenness centrality using Brandes' algorithm."
+  "Returns normalized betweenness centrality by shortest-path counting."
   [g]
   (let [vs (vec (nodes g))
         shortest-counts (fn [source]
