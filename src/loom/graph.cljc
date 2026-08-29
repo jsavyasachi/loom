@@ -164,6 +164,7 @@ on adjacency lists."
        :doc "Weight used when none is given for edges in weighted graphs"}
   *default-weight* 1)
 
+#_:clj-kondo/ignore
 (def-protocol-impls ^:private default-all
   {:nodes (fn [g]
             (:nodeset g))
@@ -180,10 +181,12 @@ on adjacency lists."
    :out-edges (fn [g node]
                 (for [n2 (successors g node)] [node n2]))})
 
+#_:clj-kondo/ignore
 (def-protocol-impls ^:private default-unweighted
   ;; Unweighted graphs store adjacencies as {node #{neighbor}}
   {:successors* (fn [g node] (get-in g [:adj node]))})
 
+#_:clj-kondo/ignore
 (def-protocol-impls ^:private default-weighted
   ;; Weighted graphs store adjacencies as {node {neighbor weight}}
   {:successors* (fn [g node] (keys (get-in g [:adj node])))})
@@ -196,6 +199,7 @@ on adjacency lists."
            :unweighted default-unweighted
            :weighted default-weighted}))
 
+#_:clj-kondo/ignore
 (def-protocol-impls default-digraph-impl
   {:predecessors* (fn [g node] (get-in g [:in node]))
    :in-degree (fn [g node]
@@ -203,6 +207,7 @@ on adjacency lists."
    :in-edges (fn [g node]
                (for [n2 (predecessors g node)] [n2 node]))})
 
+#_:clj-kondo/ignore
 (def-protocol-impls default-weighted-graph-impl
   {:weight* (fn
               ([g e] (weight g (src e) (dest e)))
@@ -549,6 +554,7 @@ on adjacency lists."
     (apply f args)
     f))
 
+#_:clj-kondo/ignore
 (def-protocol-impls ^:private default-flygraph-graph-impl
   {:nodes (fn [g]
             (if (or (:fnodes g) (not (:start g)))
@@ -570,11 +576,13 @@ on adjacency lists."
    :has-edge? (fn [g n1 n2]
                 (some #{[n1 n2]} (edges g)))})
 
+#_:clj-kondo/ignore
 (def-protocol-impls ^:private default-flygraph-digraph-impl
   {:predecessors* (fn [g node] (call-or-return (:fpredecessors g) node))
    :in-degree (fn [g node] (count (predecessors g node)))
    :in-edges (get-in default-digraph-impl [:in-edges])})
 
+#_:clj-kondo/ignore
 (def-protocol-impls ^:private default-flygraph-weighted-impl
   {:weight* (fn
               ([g e] (weight g (src e) (dest e)))
@@ -718,6 +726,7 @@ on adjacency lists."
                                 [nodes (assoc! adj n2 nbrs) in]))))
                         [(transient #{}) (transient {}) (when directed (transient {}))]
                         es)]
+    #_:clj-kondo/ignore
     (let [adj (persistent! adj)
           adj (into {} (map (fn [[n nbrs]] [n (persistent! nbrs)]) adj))
           nodes (persistent! nodes)]

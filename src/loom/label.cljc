@@ -12,6 +12,7 @@
   (remove-label [g node] [g n1 n2] "Remove a label from a node or edge")
   (label [g node] [g n1 n2] "Return the label on a node or edge"))
 
+#_:clj-kondo/ignore
 (def-protocol-impls default-labeled-graph-impl
   {:add-label (fn
                 ([g node label]

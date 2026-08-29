@@ -2,15 +2,13 @@
   (:require [loom.alg-generic :as lag]
             [loom.graph :as g]
             [clojure.set :as set]
-            [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
-            #?@(:clj [[clojure.test :refer :all]
+            #?@(:clj [[clojure.test :refer [are deftest is]]
                       [clojure.test.check.clojure-test :refer [defspec]]
                       [clojure.test.check.properties :as prop]]
                 :cljs [clojure.test.check.properties]))
-  #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing are is)]
-                              [clojure.test.check.clojure-test :refer [defspec]]
-                              [clojure.test.check.properties :as prop])]))
+  #_:clj-kondo/ignore
+  #?@(:cljs [(:require-macros [cljs.test :refer (deftest are is)])]))
 
 (defn dag-samples-gen
   [dag percent]
@@ -68,7 +66,8 @@
     (zipmap anc-nodes
             (map #(set (lag/ancestors ancestry %)) anc-nodes))))
 
-(def dag-similarity-props
+#?(:clj
+ (def dag-similarity-props
   (prop/for-all [[dag samples] (gen/bind (gen/choose 0 100)
                                          (fn [dag-size]
                                            (gen-dag dag-size)))]
@@ -91,7 +90,7 @@
               (anc-model-anc? anc-model b a))
            (= (lag/ancestor? anc a b)
               (anc-model-anc? anc-model a b))))
-        samp-pairs)))))
+        samp-pairs))))))
 
 ;; test.check's generator runtime does not survive :advanced ClojureScript
 ;; compilation in the test build. The property-based specs run only under Clojure.

@@ -67,7 +67,7 @@
                                       (map #(seq (successors g %)))
                                       flatten
                                       ;; Add the subset.
-                                      (clojure.set/union (set subset))
+                                      (into (set subset))
                                       ;; Remove nil nodes.
                                       (remove nil?)
                                       ;; Remove duplicates.

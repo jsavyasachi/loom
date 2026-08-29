@@ -1,6 +1,5 @@
 (ns loom.test.runner
-  (:require [cljs.test :as test]
-            [doo.runner :refer-macros [doo-all-tests doo-tests]]
+  (:require [doo.runner :refer-macros [doo-all-tests]]
             loom.test.alg
             loom.test.alg-generic
             loom.test.attr

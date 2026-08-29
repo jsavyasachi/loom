@@ -13,6 +13,7 @@ loom.graph. Attributes can provide labels and styles (color, thickness, and so o
   (attr [g node-or-edge k] [g n1 n2 k] "Return the attribute on a node or edge")
   (attrs [g node-or-edge] [g n1 n2] "Return all attributes on a node or edge"))
 
+#_:clj-kondo/ignore
 (def-protocol-impls default-attr-graph-impl
   {:add-attr (fn
                ([g node-or-edge k v]
@@ -47,6 +48,7 @@ loom.graph. Attributes can provide labels and styles (color, thickness, and so o
                (let [attributes (get-in g [:attrs n1 ::edge-attrs n2])]
                (when (seq attributes) attributes))))})
 
+#_:clj-kondo/ignore
 (def-protocol-impls multi-attr-graph-impl
   {:add-attr (fn
                ([g node-or-edge k v]

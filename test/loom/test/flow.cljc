@@ -3,8 +3,9 @@
             [loom.attr :refer [add-attr]]
             [loom.flow :as flow :refer (edmonds-karp is-admissible-flow?)]
             [loom.alg :refer [max-flow]]
-            #?@(:clj [[clojure.test :refer :all]]
+            #?@(:clj [[clojure.test :refer [are deftest is testing]]]
                 :cljs [cljs.test]))
+  #_:clj-kondo/ignore
   #?@(:cljs [(:require-macros [cljs.test :refer (deftest testing are is)])]))
 
 (defn- exception-data [f]
