@@ -39,7 +39,7 @@ Leiningen:
 Or use the maintained fork directly as a git dependency (deps.edn):
 
 ```clojure
-io.github.jsavyasachi/loom {:git/tag "1.3.0" :git/sha "c666221b9c3ad9e600a48fe4853d9cfbf17c87e5"}
+io.github.savyalabs/loom {:git/tag "1.3.0" :git/sha "c666221b9c3ad9e600a48fe4853d9cfbf17c87e5"}
 ```
 
 ### Namespaces
