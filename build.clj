@@ -24,12 +24,12 @@
                 :version version
                 :basis @basis
                 :src-dirs ["src"]
-                :scm {:url "https://github.com/jsavyasachi/loom"
-                      :connection "scm:git:https://github.com/jsavyasachi/loom.git"
-                      :developerConnection "scm:git:ssh://git@github.com/jsavyasachi/loom.git"
+                :scm {:url "https://github.com/savyalabs/loom"
+                      :connection "scm:git:https://github.com/savyalabs/loom.git"
+                      :developerConnection "scm:git:ssh://git@github.com/savyalabs/loom.git"
                       :tag (str "v" version)}
                 :pom-data [[:description "Graph library for Clojure and ClojureScript"]
-                           [:url "https://github.com/jsavyasachi/loom"]
+                           [:url "https://github.com/savyalabs/loom"]
                            [:licenses
                             [:license
                              [:name "Eclipse Public License 1.0"]

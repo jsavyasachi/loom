@@ -2,7 +2,7 @@
 
 [![Clojars Project](https://img.shields.io/clojars/v/net.clojars.savya/loom.svg)](https://clojars.org/net.clojars.savya/loom)
 [![cljdoc](https://cljdoc.org/badge/net.clojars.savya/loom)](https://cljdoc.org/d/net.clojars.savya/loom/CURRENT)
-[![test](https://github.com/jsavyasachi/loom/actions/workflows/test.yml/badge.svg)](https://github.com/jsavyasachi/loom/actions/workflows/test.yml)
+[![test](https://github.com/savyalabs/loom/actions/workflows/test.yml/badge.svg)](https://github.com/savyalabs/loom/actions/workflows/test.yml)
 
 **Maintenance fork (2026).** The original [`aysylu/loom`](https://github.com/aysylu/loom)
 is no longer maintained. This fork supports current Clojure / ClojureScript and
